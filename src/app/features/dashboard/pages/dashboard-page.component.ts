@@ -287,14 +287,20 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         align-items: center;
         justify-content: center;
         padding: 10px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(110, 231, 255, 0.14));
-        font-weight: 800;
+        border-radius: var(--radius);
+        border: 1px solid var(--azki-primary-border);
+        background: transparent;
+        color: var(--azki-primary);
+        font-weight: 500;
+        font-family: 'IRANSansXFaNum', 'Vazirmatn', sans-serif;
+        text-transform: uppercase;
+        font-size: 14px;
+        transition: all 0.2s;
       }
 
       .cta__btn:hover {
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.22), rgba(110, 231, 255, 0.18));
+        background: var(--azki-primary-hover);
+        border-color: var(--azki-primary);
       }
 
       .kpis {
@@ -307,9 +313,9 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
 
       .kpi {
         padding: 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.03);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        background: var(--surface);
       }
 
       .kpi__label {
@@ -361,7 +367,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       }
 
       .dot--brand {
-        background: linear-gradient(135deg, rgba(110, 231, 255, 0.9), rgba(167, 139, 250, 0.9));
+        background: var(--azki-primary);
       }
 
       .svg {
@@ -370,18 +376,18 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       }
 
       .gridline {
-        stroke: rgba(255, 255, 255, 0.06);
+        stroke: var(--border-light);
         stroke-width: 1;
       }
 
       .line {
         fill: none;
-        stroke: rgba(110, 231, 255, 0.9);
+        stroke: var(--azki-primary);
         stroke-width: 3;
       }
 
       .area {
-        fill: rgba(110, 231, 255, 0.12);
+        fill: rgba(0, 143, 255, 0.08);
       }
 
       .chart__x {
@@ -425,15 +431,15 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       .bar__track {
         height: 12px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-light);
+        background: var(--surface-2);
         overflow: hidden;
       }
 
       .bar__fill {
         height: 100%;
         border-radius: 999px;
-        background: linear-gradient(90deg, rgba(167, 139, 250, 0.75), rgba(110, 231, 255, 0.75));
+        background: var(--azki-primary);
       }
 
       .split {
@@ -449,9 +455,9 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
 
       .row {
         padding: 10px 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.02);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        background: var(--surface);
         display: grid;
         gap: 6px;
         margin-bottom: 10px;
@@ -476,7 +482,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         gap: 6px;
         padding: 4px 8px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid var(--border);
         font-size: 12px;
         line-height: 1.2;
       }
@@ -484,19 +490,19 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       .chip--good {
         background: rgba(52, 211, 153, 0.12);
         border-color: rgba(52, 211, 153, 0.25);
-        color: rgba(210, 255, 238, 0.92);
+        color: #065f46;
       }
 
       .chip--warn {
         background: rgba(251, 191, 36, 0.12);
         border-color: rgba(251, 191, 36, 0.22);
-        color: rgba(255, 246, 214, 0.92);
+        color: #92400e;
       }
 
       .chip--info {
-        background: rgba(110, 231, 255, 0.12);
-        border-color: rgba(110, 231, 255, 0.22);
-        color: rgba(224, 250, 255, 0.92);
+        background: var(--azki-primary-hover);
+        border-color: var(--azki-primary-border);
+        color: var(--azki-primary);
       }
 
       .bench__top {
@@ -526,14 +532,14 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       .meter__track {
         height: 12px;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-light);
+        background: var(--surface-2);
         overflow: hidden;
       }
 
       .meter__fill {
         height: 100%;
-        background: linear-gradient(90deg, rgba(110, 231, 255, 0.8), rgba(167, 139, 250, 0.8));
+        background: var(--azki-primary);
       }
 
       .meter__labels {
@@ -554,9 +560,9 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
 
       .mini {
         padding: 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.02);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        background: var(--surface);
       }
 
       .mini__label {
@@ -591,9 +597,9 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
 
       .forecast__card {
         padding: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        background: rgba(255, 255, 255, 0.02);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        background: var(--surface);
       }
 
       .forecast__month {

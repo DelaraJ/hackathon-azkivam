@@ -22,21 +22,21 @@ import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
   styles: [
     `
       .card {
-        border-radius: var(--radius);
+        border-radius: var(--radius-md);
         border: 1px solid var(--border);
-        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
-        box-shadow: var(--shadow);
+        background: var(--surface);
+        box-shadow: var(--shadow-elevation);
         overflow: hidden;
       }
 
       .head {
-        padding: 14px 16px;
+        padding: 16px;
         display: flex;
         align-items: flex-start;
         justify-content: space-between;
         gap: 12px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid var(--border-light);
+        background: var(--surface);
         direction: rtl;
       }
 

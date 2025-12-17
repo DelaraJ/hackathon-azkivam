@@ -20,13 +20,15 @@ import { TopbarComponent } from './topbar.component';
         min-height: 100dvh;
         display: grid;
         grid-template-rows: auto 1fr;
+        background: var(--bg);
       }
 
       .content {
-        padding: 20px;
+        padding: 24px;
         max-width: 1240px;
         width: 100%;
         margin: 0 auto;
+        background: var(--bg);
       }
 
       .content--wide {

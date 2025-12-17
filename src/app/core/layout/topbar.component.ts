@@ -11,40 +11,42 @@ type NavItem = Readonly<{
   imports: [RouterLink, RouterLinkActive],
   template: `
     <header class="topbar">
-      <div class="topbar__left">
-        <div class="brand">
-          <div class="brand__mark" aria-hidden="true">A</div>
-          <div class="brand__text">
-            <div class="brand__name">AzkiVam</div>
-            <div class="brand__tag">پنل مدیریت فروشنده</div>
-          </div>
+      <div class="topbar__container">
+        <div class="topbar__left">
+          <a class="brand" href="/">
+            <div class="brand__logo">
+              <span class="brand__mark">ازکی</span>
+            </div>
+          </a>
+
+          <nav class="nav" aria-label="Primary">
+            @for (item of items; track item.route) {
+              <a
+                class="nav__item"
+                [routerLink]="item.route"
+                routerLinkActive="nav__item--active"
+                [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+              >
+                <span class="nav__label">{{ item.label }}</span>
+                <svg class="nav__chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M7.29289 10.2929C7.68342 9.90237 8.31658 9.90237 8.70711 10.2929L12 13.5858L15.2929 10.2929C15.6834 9.90237 16.3166 9.90237 16.7071 10.2929C17.0976 10.6834 17.0976 11.3166 16.7071 11.7071L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L7.29289 11.7071C6.90237 11.3166 6.90237 10.6834 7.29289 10.2929Z" fill="currentColor"></path>
+                </svg>
+              </a>
+            }
+          </nav>
         </div>
 
-        <nav class="nav" aria-label="Primary">
-          @for (item of items; track item.route) {
-            <a
-              class="nav__item"
-              [routerLink]="item.route"
-              routerLinkActive="nav__item--active"
-              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-            >
-              <span class="nav__label">{{ item.label }}</span>
-            </a>
-          }
-        </nav>
-      </div>
-
-      <div class="search" role="search">
-        <input class="search__input" type="search" placeholder="جستجو (نمونه)" aria-label="Search" />
-      </div>
-
-      <div class="topbar__right">
-        <div class="profile">
-          <div class="profile__avatar" aria-hidden="true">M</div>
-          <div class="profile__meta">
-            <div class="profile__name">مدیر فروشنده</div>
-            <div class="profile__role">مستأجر نمونه</div>
-          </div>
+        <div class="topbar__right">
+          <button class="support-btn" aria-label="پشتیبانی">
+            <svg class="support-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 3C7.58172 3 4 6.58172 4 11H5C6.65685 11 8 12.3431 8 14C8 15.6569 6.65685 17 5 17H2V11C2 5.47715 6.47715 1 12 1C17.5228 1 22 5.47715 22 11V16C22 19.3137 19.3137 22 16 22H15C15 22.5523 14.5523 23 14 23C13.4477 23 13 22.5523 13 22V19C13 18.4477 13.4477 18 14 18C14.5523 18 15 18.4477 15 19V20H16C17.8638 20 19.4299 18.7252 19.874 17H19C17.3431 17 16 15.6569 16 14C16 12.3431 17.3431 11 19 11H20C20 6.58172 16.4183 3 12 3ZM20 13H19C18.4477 13 18 13.4477 18 14C18 14.5523 18.4477 15 19 15H20V13ZM4 15V13H5C5.55228 13 6 13.4477 6 14C6 14.5523 5.55228 15 5 15H4Z" fill="currentColor"></path>
+            </svg>
+            <span class="support-text">پشتیبانی</span>
+          </button>
+          
+          <button class="login-btn" aria-label="ورود / ثبت نام">
+            <span>ورود / ثبت نام</span>
+          </button>
         </div>
       </div>
     </header>
@@ -52,182 +54,179 @@ type NavItem = Readonly<{
   styles: [
     `
       .topbar {
+        background: #FFFFFF;
+        border-bottom: 1px solid rgba(4, 10, 31, 0.09);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .topbar__container {
+        max-width: 100%;
+        margin: 0 auto;
         height: 72px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 20px;
-        border-bottom: 1px solid var(--border);
-        background: rgba(15, 26, 47, 0.55);
-        backdrop-filter: blur(12px);
-        gap: 24px;
+        padding: 0 24px;
+        direction: rtl;
       }
 
       .topbar__left {
         display: flex;
         align-items: center;
-        gap: 24px;
-        min-width: 0;
-        flex-shrink: 0;
-        direction: rtl;
+        gap: 32px;
+        flex: 1;
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 12px;
+        text-decoration: none;
+        color: inherit;
         flex-shrink: 0;
-        direction: rtl;
+      }
+
+      .brand__logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .brand__mark {
-        width: 42px;
-        height: 42px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-        font-weight: 800;
-        background: linear-gradient(135deg, rgba(110, 231, 255, 0.22), rgba(167, 139, 250, 0.18));
-        border: 1px solid var(--border);
-      }
-
-      .brand__name {
-        font-weight: 750;
-        letter-spacing: 0.2px;
-      }
-
-      .brand__tag {
-        font-size: 12px;
-        color: var(--muted);
-        margin-top: 2px;
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--text-high);
+        font-family: 'IRANSansXFaNum', 'Vazirmatn', sans-serif;
       }
 
       .nav {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 0;
         direction: rtl;
       }
 
       .nav__item {
-        padding: 10px 16px;
-        border-radius: 12px;
-        border: 1px solid transparent;
-        color: var(--text);
+        padding: 4px 0;
+        color: rgba(4, 10, 31, 0.87);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        background: unset;
+        width: 100%;
+        text-align: unset;
         text-decoration: none;
-        font-weight: 650;
-        transition: all 0.2s;
+        font-family: 'IRANSansXFaNum', 'Vazirmatn', sans-serif;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 1.71;
+        letter-spacing: 0%;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.2s;
+        gap: 4px;
       }
 
       .nav__item:hover {
-        background: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.05);
+        color: var(--azki-primary);
+      }
+
+      .nav__item:hover .nav__chevron {
+        color: inherit;
       }
 
       .nav__item--active {
-        background: linear-gradient(135deg, rgba(110, 231, 255, 0.14), rgba(167, 139, 250, 0.12));
-        border-color: rgba(255, 255, 255, 0.12);
+        color: var(--azki-primary);
       }
 
-      .search {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        max-width: 500px;
-        margin: 0 auto;
-      }
-
-      .search__input {
-        width: 100%;
-        max-width: 360px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--text);
-        outline: none;
-        direction: rtl;
-        text-align: right;
+      .nav__chevron {
+        width: 24px;
+        height: 24px;
+        color: rgba(117, 117, 117, 1);
+        transition: color 0.2s;
       }
 
       .topbar__right {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 24px;
         flex-shrink: 0;
         direction: rtl;
       }
 
-      .search__input:focus {
-        border-color: rgba(110, 231, 255, 0.35);
-        box-shadow: 0 0 0 3px rgba(110, 231, 255, 0.12);
-      }
-
-      .profile {
+      .support-btn {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 8px 10px;
-        border-radius: 14px;
-        border: 1px solid var(--border);
-        background: rgba(255, 255, 255, 0.03);
-        direction: rtl;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        padding: 6px 8px;
+        cursor: pointer;
+        color: var(--azki-primary);
+        font-family: 'IRANSansXFaNum', 'Vazirmatn', sans-serif;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 1.71;
+        text-transform: uppercase;
+        transition: background-color 0.2s;
+        border-radius: 8px;
       }
 
-      .profile__avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 12px;
-        display: grid;
-        place-items: center;
-        font-weight: 800;
-        background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(110, 231, 255, 0.16));
-        border: 1px solid rgba(255, 255, 255, 0.08);
+      .support-btn:hover {
+        background-color: var(--azki-primary-hover);
       }
 
-      .profile__name {
-        font-weight: 650;
-        font-size: 13px;
-        line-height: 1.1;
+      .support-icon {
+        width: 24px;
+        height: 24px;
+        color: var(--azki-primary);
       }
 
-      .profile__role {
-        font-size: 12px;
-        color: var(--muted);
+      .support-text {
+        display: inline-block;
       }
 
-      @media (max-width: 900px) {
+      .login-btn {
+        background-color: transparent;
+        border: 1px solid var(--azki-primary-border);
+        color: var(--azki-primary);
+        border-radius: 32px;
+        padding: 5px 15px;
+        font-family: 'IRANSansXFaNum', 'Vazirmatn', sans-serif;
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 1.71;
+        letter-spacing: 0%;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+                    border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
+
+      .login-btn:hover {
+        background-color: var(--azki-primary-hover);
+        border: 1px solid var(--azki-primary);
+      }
+
+      @media (max-width: 960px) {
+        .support-text {
+          display: none;
+        }
+        
         .nav {
-          gap: 2px;
-        }
-        .nav__item {
-          padding: 10px 12px;
-          font-size: 14px;
-        }
-      }
-
-      @media (max-width: 900px) {
-        .search {
-          max-width: 280px;
+          display: none;
         }
       }
 
       @media (max-width: 640px) {
-        .profile__meta {
-          display: none;
+        .topbar__container {
+          padding: 0 16px;
         }
-        .search {
-          max-width: 200px;
-        }
-        .search__input {
-          max-width: 100%;
-        }
-        .brand__tag {
-          display: none;
-        }
-        .nav__item {
-          padding: 10px 10px;
-          font-size: 13px;
+        
+        .topbar__left {
+          gap: 16px;
         }
       }
     `
@@ -236,9 +235,9 @@ type NavItem = Readonly<{
 })
 export class TopbarComponent {
   protected readonly items: readonly NavItem[] = [
-    { label: 'داشبورد', route: '/dashboard' },
-    { label: 'کوپن‌ها', route: '/vouchers' },
-    { label: 'تنظیمات', route: '/settings' }
+    { label: 'بیمه‌ها', route: '/dashboard' },
+    { label: 'خسارت', route: '/vouchers' },
+    { label: 'شرکت‌های بیمه', route: '/settings' }
   ];
 }
 
