@@ -284,8 +284,10 @@ export class TopbarComponent {
   protected readonly items: readonly NavItem[] = [
     // داشبورد اصلی
     { label: 'داشبورد', route: '/dashboard' },
-    // صفحه بررسی و پایش استراتژی‌های تخفیف (جریان ووچرها)
-    { label: 'بررسی استراتژی تخفیف', route: '/vouchers' }
+    // صفحه تنظیم و بررسی استراتژی‌های تخفیف (جریان ووچرها)
+    { label: 'بررسی استراتژی تخفیف', route: '/vouchers' },
+    { label: 'پایش کمپین‌ها', route: '/vouchers/monitoring' }
+    // داشبورد پایش عملکرد کمپین‌های تخفیف
   ];
 }
 

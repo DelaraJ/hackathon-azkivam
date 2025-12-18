@@ -247,6 +247,7 @@ export class VoucherReviewPageComponent {
 
   confirm(): void {
     this.flow.confirm();
+    void this.router.navigateByUrl('/vouchers/monitoring');
   }
 }
 

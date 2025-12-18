@@ -38,6 +38,24 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         </div>
       </section>
 
+      <section class="azk-card target">
+        <div class="target__head">
+          <div class="target__numbers">
+            <div class="target__title">پیشرفت تا سقف فروش مشوق</div>
+            <div class="target__bar">
+              <div class="target__bar-fill" [style.width.%]="salesProgressPct()"></div>
+            </div>
+            <div class="target__current">
+              <b>{{ salesToTarget | number : '1.0-0' }}</b>
+              <span>تومان</span>
+            </div>
+            <div class="target__chip">
+              {{ salesProgressPct() | number : '1.0-1' }}% تکمیل شده
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="kpis azk-card" *ngIf="kpis$ | async as kpis">
         <div class="kpi">
           <div class="kpi__label">فروش کل</div>
@@ -311,6 +329,75 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
         border-radius: var(--radius);
+      }
+
+      .target {
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+        direction: rtl;
+      }
+
+      .target__head {
+        display: grid;
+        gap: 4px;
+      }
+
+      .target__title {
+        font-weight: 800;
+        font-size: 15px;
+        width: 200px;
+      }
+
+      .target__numbers {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 1123px;
+      }
+
+      .target__current {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 13px;
+      }
+
+      .target__current b {
+        font-size: 18px;
+      }
+
+      .target__chip {
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--azki-primary-hover);
+        border: 1px solid var(--azki-primary-border);
+        color: var(--azki-primary);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .target__bar {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+      }
+
+      .target__bar-fill {
+        position: absolute;
+        inset: 0;
+        width: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--azki-primary), #22c55e);
+        transition: width 0.4s ease-out;
       }
 
       .kpi {
@@ -658,6 +745,12 @@ export class DashboardPageComponent {
   readonly products$ = this.analytics.getProductPerformance();
   readonly benchmark$ = this.analytics.getPerformanceComparison();
   readonly forecast$ = this.analytics.getFutureSalesPrediction();
+
+  readonly salesTarget = 100_000_000;
+  readonly salesToTarget = 38_000_000;
+  readonly salesProgressPct = computed(() =>
+    this.salesTarget <= 0 ? 0 : Math.min(100, (this.salesToTarget / this.salesTarget) * 100)
+  );
 
   bestProducts(products: readonly ProductSales[]): readonly ProductSales[] {
     return products.filter((p) => p.tag === 'best');
