@@ -12,8 +12,8 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
     <div class="page">
       <div class="head">
         <div>
-          <div class="h1">بررسی و تأیید</div>
-          <div class="muted">مرحله ۳ — پس از بررسی حوزه و محافظ‌ها تأیید کنید.</div>
+          <div class="h1">بررسی نهایی و تأیید تخفیف</div>
+          <div class="muted">مرحله ۳ — یک بار مرور کنید و در صورت تأیید، تخفیف را فعال کنید.</div>
         </div>
         <button class="btn btn--ghost" type="button" (click)="back()">بازگشت</button>
       </div>
@@ -21,44 +21,48 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
       <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card" *ngIf="enabled(); else blocked">
-        <div class="card__title">خلاصه طرح</div>
-        <div class="card__subtitle">این خلاصه از هدف انتخابی شما + قوانین نمونه تولید شده است.</div>
+        <div class="card__title">خلاصه تخفیف</div>
+        <div class="card__subtitle">
+          این تخفیف بر اساس انتخاب‌های شما آماده شده است.        
+        </div>
 
         <div class="summary" *ngIf="rec() as r">
-          <div class="summary__row"><span class="k">تخفیف</span><b class="v">{{ discountText(r) }}</b></div>
-          <div class="summary__row"><span class="k">بخش‌ها</span><b class="v">{{ r.userSegments.join(', ') }}</b></div>
-          <div class="summary__row"><span class="k">حوزه</span><b class="v">{{ scopeText(r) }}</b></div>
+          <div class="summary__row"><span class="k">میزان تخفیف</span><b class="v">{{ discountText(r) }}</b></div>
+          <div class="summary__row"><span class="k">به چه کاربرانی</span><b class="v">{{ r.userSegments.join(', ') }}</b></div>
+          <div class="summary__row"><span class="k">کجا اعمال می‌شود</span><b class="v">{{ scopeText(r) }}</b></div>
           <div class="summary__row">
-            <span class="k">محدوده قیمت واجد شرایط</span>
+            <span class="k">بازه  قیمت محصول</span>
             <b class="v">{{ r.productPriceRange.min | number }} – {{ r.productPriceRange.max | number }}</b>
           </div>
         </div>
 
         <div class="disclaimer">
-          <div class="disclaimer__title">مهم</div>
-          <div class="disclaimer__text">“This plan only applies to users paying via Azki”</div>
+          <div class="disclaimer__title">توجه</div>
+          <div class="disclaimer__text">
+           این تخفیف فقط برای کاربرانی که از طریق آزکی پرداخت می‌کنند فعال است
+          </div>
           <div class="disclaimer__meta">
-            این یک طرح شبیه‌سازی شده است. قبل از راه‌اندازی واقعی، بررسی‌های خط‌مشی و کنترل‌های تقلب را به بک‌اند خود متصل کنید.
+            قبل از فعال‌سازی نهایی، شرایط را بررسی کنید.
           </div>
         </div>
 
         <div class="actions">
-          <button class="btn btn--ghost" type="button" (click)="edit()">ویرایش استراتژی</button>
-          <button class="btn" type="button" (click)="confirm()">تأیید طرح</button>
+          <button class="btn btn--ghost" type="button" (click)="edit()">ویرایش تخفیف</button>
+          <button class="btn" type="button" (click)="confirm()">تأیید و فعال‌سازی</button>
         </div>
 
         <div class="confirmed" *ngIf="confirmed()">
-          <div class="confirmed__title">تأیید شد</div>
-          <div class="muted">تأیید نمونه به صورت محلی ثبت شد (بدون بک‌اند).</div>
+          <div class="confirmed__title">تخفیف تأیید شد</div>
+          <div class="muted">این یک تأیید نمونه است و هنوز به صورت واقعی فعال نشده</div>
         </div>
       </section>
 
       <ng-template #blocked>
         <section class="azk-card card">
-          <div class="card__title">پیشنهاد مورد نیاز است</div>
-          <div class="card__subtitle">ابتدا یک پیشنهاد تولید کنید، سپس بررسی و تأیید کنید.</div>
+          <div class="card__title">تخفیفی برای بررسی وجود ندارد</div>
+          <div class="card__subtitle">ابتدا یک پیشنهاد تخفیف بسازید، سپس آن را تأیید کنید.</div>
           <div class="actions">
-            <button class="btn" type="button" (click)="goRecommendation()">رفتن به پیشنهاد</button>
+            <button class="btn" type="button" (click)="goRecommendation()">رفتن به پیشنهاد تخفیف</button>
           </div>
         </section>
       </ng-template>
@@ -206,16 +210,16 @@ export class VoucherReviewPageComponent {
     const hasGoal = this.flow.snapshot.strategy.goal !== null;
     const hasRec = this.flow.snapshot.recommendation !== null;
     return [
-      { id: 'STRATEGY', label: 'استراتژی', route: '/vouchers/strategy', complete: hasGoal, enabled: true },
-      { id: 'RECOMMENDATION', label: 'پیشنهاد', route: '/vouchers/recommendation', complete: hasRec, enabled: hasGoal },
-      { id: 'REVIEW', label: 'بررسی و تأیید', route: '/vouchers/review', complete: this.flow.snapshot.confirmed, enabled: hasRec }
+      { id: 'STRATEGY', label: 'تنظیم تخفیف', route: '/vouchers/strategy', complete: hasGoal, enabled: true },
+      { id: 'RECOMMENDATION', label: 'پیشنهاد تخفیف', route: '/vouchers/recommendation', complete: hasRec, enabled: hasGoal },
+      { id: 'REVIEW', label: 'تأیید نهایی', route: '/vouchers/review', complete: this.flow.snapshot.confirmed, enabled: hasRec }
     ];
   });
 
   readonly rec = computed<VoucherRecommendation | null>(() => this.flow.snapshot.recommendation);
 
   discountText(r: VoucherRecommendation): string {
-    return r.discountType === 'PERCENT' ? `${r.discountValue}% off` : `${r.discountValue.toLocaleString()} off`;
+    return r.discountType === 'PERCENT' ? `${r.discountValue}% تخفیف` : `${r.discountValue.toLocaleString()} تومان تخفیف`;
   }
 
   scopeText(r: VoucherRecommendation): string {
@@ -223,7 +227,7 @@ export class VoucherReviewPageComponent {
       case 'ALL_BRANCHES':
         return 'همه شعب';
       case 'BRANCHES':
-        return `شعب انتخابی (${(r.scope.branchIds ?? []).length})`;
+        return `شعب انتخاب‌شده (${(r.scope.branchIds ?? []).length})`;
       case 'CATEGORY':
         return `دسته: ${r.scope.category ?? '—'}`;
     }

@@ -12,8 +12,8 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
     <div class="page">
       <div class="head">
         <div>
-          <div class="h1">پیشنهاد کوپن</div>
-          <div class="muted">مرحله ۲ — خروجی نمونه قابل توضیح و مبتنی بر قوانین.</div>
+          <div class="h1">پیشنهاد تخفیف</div>
+          <div class="muted">مرحله ۲ — پیشنهاد آماده برای افزایش فروش شما.</div>
         </div>
         <button class="btn btn--ghost" type="button" (click)="back()">بازگشت</button>
       </div>
@@ -21,32 +21,33 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
       <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card" *ngIf="enabled(); else blocked">
-        <div class="card__title">طرح پیشنهادی</div>
-        <div class="card__subtitle">این مقادیر شبیه‌سازی شده و عمدتاً محافظه‌کارانه هستند.</div>
+        <div class="card__title">پیشنهاد پیشنهادی سیستم</div>
+        <div class="card__subtitle">بر اساس اطلاعات فروش و رفتار کاربران شما</div>
 
         <div class="grid" *ngIf="rec() as r">
           <div class="tile">
-            <div class="tile__label">تخفیف</div>
+            <div class="tile__label">میزان تخفیف</div>
             <div class="tile__value">{{ discountText(r) }}</div>
-            <div class="tile__hint">نوع برای کنترل سوءاستفاده و هزینه انتخاب شده است (نمونه).</div>
-          </div>
+            <div class="tile__hint">
+              این مقدار برای افزایش فروش و کنترل هزینه انتخاب شده است            </div>
+            </div>
           <div class="tile">
-            <div class="tile__label">بخش‌های کاربری</div>
+            <div class="tile__label">به چه کاربرانی داده شود</div>
             <div class="tile__value">{{ r.userSegments.join(', ') }}</div>
           </div>
           <div class="tile">
-            <div class="tile__label">حوزه</div>
+            <div class="tile__label">کجا اعمال شود</div>
             <div class="tile__value">{{ scopeText(r) }}</div>
           </div>
           <div class="tile">
             <div class="tile__label">محدوده قیمت محصول</div>
-            <div class="tile__value">{{ r.productPriceRange.min | number }} – {{ r.productPriceRange.max | number }}</div>
+            <div class="tile__value">{{ r.productPriceRange.min | number }} تا {{ r.productPriceRange.max | number }}</div>
           </div>
         </div>
 
         <div class="two">
           <div class="box">
-            <div class="box__title">چرا این پیشنهاد؟</div>
+            <div class="box__title">چرا این تخفیف پیشنهاد شده؟</div>
             <ul class="list" *ngIf="rec() as r">
               @for (n of r.rationale; track n) {
                 <li>{{ n }}</li>
@@ -55,7 +56,7 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
           </div>
 
           <div class="box">
-            <div class="box__title">محافظ‌ها (جلوگیری از سوءاستفاده)</div>
+            <div class="box__title">محدودیت‌ها</div>
             <ul class="list" *ngIf="rec() as r">
               @for (g of r.guardrails; track g) {
                 <li>{{ g }}</li>
@@ -65,17 +66,17 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
         </div>
 
         <div class="actions">
-          <button class="btn btn--ghost" type="button" (click)="regenerate()">تولید مجدد (نمونه)</button>
-          <button class="btn" type="button" (click)="continue()">ادامه به بررسی</button>
+          <button class="btn btn--ghost" type="button" (click)="regenerate()">تغییر پیشنهاد</button>
+          <button class="btn" type="button" (click)="continue()">ادامه و تأیید</button>
         </div>
       </section>
 
       <ng-template #blocked>
         <section class="azk-card card">
-          <div class="card__title">ابتدا مرحله ۱ را تکمیل کنید</div>
-          <div class="card__subtitle">یک هدف انتخاب کنید تا بتوانیم پیشنهادی تولید کنیم.</div>
+          <div class="card__title">پیشنهادی وجود ندارد</div>
+          <div class="card__subtitle">ابتدا هدف تخفیف را مشخص کنید تا پیشنهاد آماده شود</div>
           <div class="actions">
-            <button class="btn" type="button" (click)="goStrategy()">رفتن به استراتژی</button>
+            <button class="btn" type="button" (click)="goStrategy()">رفتن به مرحله قبل</button>
           </div>
         </section>
       </ng-template>
@@ -251,7 +252,7 @@ export class VoucherRecommendationPageComponent {
   });
 
   discountText(r: VoucherRecommendation): string {
-    return r.discountType === 'PERCENT' ? `${r.discountValue}% off` : `${r.discountValue.toLocaleString()} off`;
+    return r.discountType === 'PERCENT' ? `${r.discountValue}% تخفیف` : `${r.discountValue.toLocaleString()} تومان تخفیف`;
   }
 
   scopeText(r: VoucherRecommendation): string {
@@ -259,7 +260,7 @@ export class VoucherRecommendationPageComponent {
       case 'ALL_BRANCHES':
         return 'همه شعب';
       case 'BRANCHES':
-        return `شعب انتخابی (${(r.scope.branchIds ?? []).length})`;
+        return `شعب انتخاب‌شده  (${(r.scope.branchIds ?? []).length})`;
       case 'CATEGORY':
         return `دسته: ${r.scope.category ?? '—'}`;
     }

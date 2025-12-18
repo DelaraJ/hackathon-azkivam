@@ -11,8 +11,8 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
     <div class="page">
       <div class="head">
         <div>
-          <div class="h1">پیشنهاد کوپن</div>
-          <div class="muted">Pick a strategy first. We’ll generate a safe, explainable mock plan.</div>
+          <div class="h1">ساخت برنامه ریزی تخفیف</div>
+          <div class="muted">ابتدا هدف خود را مشخص کنید تا یک پیشنهاد مناسب برای شما آماده کنیم</div>
         </div>
         <button class="btn btn--ghost" type="button" (click)="reset()">بازنشانی</button>
       </div>
@@ -20,9 +20,9 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
       <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card">
-        <div class="card__title">مرحله ۱ — انتخاب استراتژی</div>
+        <div class="card__title">مرحله ۱ — هدف تخفیف</div>
         <div class="card__subtitle">
-          یک هدف انتخاب کنید. بودجه اختیاری محدودیت تخفیف را تعیین می‌کند (برای ایمنی توصیه می‌شود).
+          هدف شما کمک می‌کند تخفیف به شکل مؤثرتری پیشنهاد شود        
         </div>
 
         <div class="grid">
@@ -41,7 +41,7 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
 
         <div class="row">
           <div class="field">
-            <label class="label" for="budget">Max discount budget (optional)</label>
+            <label class="label" for="budget">حداکثر بودجه تخفیف (اختیاری)</label>
             <input
               id="budget"
               class="input"
@@ -50,15 +50,15 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
               step="10000"
               [value]="budgetInput()"
               (input)="budgetInput.set(($any($event.target).value ?? '').toString())"
-              placeholder="e.g. 1000000"
+              placeholder="مثلاً ۱٬۰۰۰٬۰۰۰ تومان"
             />
-            <div class="hint">This is a safety cap. We’ll reduce discount intensity if the cap is tight (mock).</div>
+            <div class="hint">اگر وارد شود، تخفیف‌ها طوری پیشنهاد می‌شوند که از این مبلغ بیشتر نشوند</div>
           </div>
         </div>
 
         <div class="actions">
           <button class="btn" type="button" [disabled]="!selectedGoal()" (click)="continue()">
-            ادامه به پیشنهاد
+          ادامه و دریافت پیشنهاد
           </button>
         </div>
       </section>
@@ -221,21 +221,21 @@ export class VoucherStrategyPageComponent {
     return [
       {
         id: 'STRATEGY',
-        label: 'استراتژی',
+        label: 'هدف تخفیف',
         route: '/vouchers/strategy',
         complete: hasGoal,
         enabled: true
       },
       {
         id: 'RECOMMENDATION',
-        label: 'پیشنهاد',
+        label: 'پیشنهاد تخفیف',
         route: '/vouchers/recommendation',
         complete: hasRec,
         enabled: hasGoal
       },
       {
         id: 'REVIEW',
-        label: 'بررسی و تأیید',
+        label: 'تأیید نهایی',
         route: '/vouchers/review',
         complete: this.flow.snapshot.confirmed,
         enabled: hasRec
@@ -244,10 +244,10 @@ export class VoucherStrategyPageComponent {
   });
 
   protected readonly goals: readonly { id: VoucherGoal; label: string; desc: string }[] = [
-    { id: 'USER_ACQUISITION', label: 'جذب کاربر', desc: 'جذب مشتریان جدید و سفارش‌های اول.' },
-    { id: 'PROFIT_INCREASE', label: 'افزایش سود', desc: 'تمرکز بر دسته‌های با حاشیه سود بالا و خریداران وفادار.' },
-    { id: 'TARGET_USERS', label: 'هدف‌گیری کاربران خاص', desc: 'درگیر کردن کاربران در معرض ریسک ترک یا بخش‌های انتخابی به صورت ایمن.' },
-    { id: 'SALES_GROWTH', label: 'رشد فروش', desc: 'افزایش حجم فروش در تمام شعب با تخفیف‌های کنترل شده.' }
+    { id: 'USER_ACQUISITION', label: 'جذب مشتری جدید', desc:  'برای آوردن مشتری‌های جدید و سفارش اول' },
+    { id: 'SALES_GROWTH', label: 'افزایش فروش', desc: 'برای بالا بردن تعداد سفارش‌ها در شعب' },
+    { id: 'PROFIT_INCREASE', label: 'افزایش سود', desc: 'تمرکز روی محصولات و مشتریان سودآور' },
+    { id: 'TARGET_USERS', label: 'هدف‌گیری کاربران خاص', desc: 'برگرداندن یا درگیر کردن کاربران منتخب' }
   ];
 
   reset(): void {

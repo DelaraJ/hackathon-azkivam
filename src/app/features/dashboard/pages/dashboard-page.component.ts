@@ -20,19 +20,21 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       <div class="page__head">
         <div>
           <div class="h1">داشبورد</div>
-          <div class="muted">تحلیل‌ها توسط سرویس‌های نمونه پشتیبانی می‌شوند (آماده برای جایگزینی با APIهای واقعی).</div>
+          <div class="muted">
+          داده‌های تحلیلی از سرویس‌های نمونه دریافت می‌شوند و آماده اتصال به APIهای واقعی هستند.
+          </div>
         </div>
       </div>
 
       <section class="cta azk-card">
         <div class="cta__left">
-          <div class="cta__title">ایجاد طرح کوپن</div>
+          <div class="cta__title">استراتژی تخفیف</div>
           <div class="cta__desc">
-            یک جریان پیشنهاد هدایت‌شده و مبتنی بر قوانین با محافظ‌ها و اخطار واضح آزکی شروع کنید.
+            پیشنهاد هوشمند تخفیف بر اساس رفتار کاربران، عملکرد محصولات و فروش شعب
           </div>
         </div>
         <div class="cta__right">
-          <a class="cta__btn" routerLink="/vouchers/strategy">شروع پیشنهاد کوپن</a>
+          <a class="cta__btn" routerLink="/vouchers/strategy">شروع استراتژی تخفیف</a>
         </div>
       </section>
 
@@ -42,34 +44,34 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
           <div class="kpi__value">{{ kpis.totalSales | currency : kpis.currency : 'symbol-narrow' }}</div>
           <div class="kpi__meta">
             <span class="chip chip--good">+{{ kpis.salesDeltaPctMoM | number : '1.1-1' }}%</span>
-            <span class="kpi__hint">نسبت به ماه قبل</span>
+            <span class="kpi__hint">نسبت به ماه گذشته</span>
           </div>
         </div>
         <div class="kpi">
-          <div class="kpi__label">سفارش‌ها</div>
+          <div class="kpi__label">تعداد سفارش‌ها</div>
           <div class="kpi__value">{{ kpis.totalOrders | number }}</div>
-          <div class="kpi__meta"><span class="kpi__hint">تسویه‌حساب‌های تکمیل شده</span></div>
+          <div class="kpi__meta"><span class="kpi__hint">سفارش‌های نهایی‌شده</span></div>
         </div>
         <div class="kpi">
           <div class="kpi__label">میانگین ارزش سفارش</div>
           <div class="kpi__value">{{ kpis.avgOrderValue | currency : kpis.currency : 'symbol-narrow' }}</div>
-          <div class="kpi__meta"><span class="kpi__hint">فروش ÷ سفارش‌ها</span></div>
+          <div class="kpi__meta"><span class="kpi__hint">نسبت فروش به تعداد سفارش</span></div>
         </div>
         <div class="kpi">
           <div class="kpi__label">شعب فعال</div>
           <div class="kpi__value">{{ kpis.activeBranches }}</div>
-          <div class="kpi__meta"><span class="kpi__hint">گزارش فروش</span></div>
+          <div class="kpi__meta"><span class="kpi__hint">دارای گزارش فروش</span></div>
         </div>
       </section>
 
       <div class="grid grid--2">
-        <azk-chart-wrapper title="فروش در طول زمان" subtitle="فروش ناخالص هفتگی (نمونه)">
+        <azk-chart-wrapper title="روند فروش در طول زمان" subtitle="فروش ناخالص هفتگی (داده نمونه)">
           <div class="chart" *ngIf="salesOverTime$ | async as series">
             <div class="chart__legend">
               <span class="dot dot--brand"></span>
               <span class="muted">{{ series.label }}</span>
             </div>
-            <svg class="svg" viewBox="0 0 700 240" preserveAspectRatio="none" role="img" aria-label="نمودار خطی فروش">
+            <svg class="svg" viewBox="0 0 700 240" preserveAspectRatio="none" role="img" aria-label="نمودار خطی روند فروش">
               <path class="gridline" d="M 0 200 L 700 200" />
               <path class="gridline" d="M 0 140 L 700 140" />
               <path class="gridline" d="M 0 80 L 700 80" />
@@ -85,7 +87,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
           </div>
         </azk-chart-wrapper>
 
-        <azk-chart-wrapper title="فروش بر اساس شعبه" subtitle="فروش کل هر شعبه (نمونه)">
+        <azk-chart-wrapper title="فروش به تفکیک شعبه" subtitle="مقایسه مجموع فروش شعب (داده نمونه)">
           <div class="chart" *ngIf="salesByBranch$ | async as branches">
             <div class="bars">
               @for (b of branches; track b.branchId) {
@@ -105,28 +107,28 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       </div>
 
       <div class="grid grid--2">
-        <azk-chart-wrapper title="محصولات" subtitle="بهترین و بدترین عملکردها (نمونه)">
+        <azk-chart-wrapper title="عملکرد محصولات" subtitle="محصولات با بهترین و ضعیف‌ترین عملکرد">
           <div class="split" *ngIf="products$ | async as products">
             <div class="list">
-              <div class="list__title">پرفروش‌ترین</div>
+              <div class="list__title">پرفروش‌ترین محصولات</div>
               @for (p of bestProducts(products); track p.productId) {
                 <div class="row">
                   <div class="row__name">{{ p.productName }}</div>
                   <div class="row__meta">
-                    <span class="chip chip--good">{{ p.unitsSold | number }} units</span>
-                    <span class="muted">{{ p.revenue | number }} revenue</span>
+                    <span class="chip chip--good">{{ p.unitsSold | number }} عدد</span>
+                    <span class="muted">{{ p.revenue | number }} فروش</span>
                   </div>
                 </div>
               }
             </div>
             <div class="list">
-              <div class="list__title">کم‌فروش‌ترین</div>
+              <div class="list__title">کم‌فروش‌ترین محصولات</div>
               @for (p of worstProducts(products); track p.productId) {
                 <div class="row">
                   <div class="row__name">{{ p.productName }}</div>
                   <div class="row__meta">
-                    <span class="chip chip--warn">{{ p.unitsSold | number }} units</span>
-                    <span class="muted">{{ p.revenue | number }} revenue</span>
+                    <span class="chip chip--warn">{{ p.unitsSold | number }} عدد</span>
+                    <span class="muted">{{ p.revenue | number }} فروش</span>
                   </div>
                 </div>
               }
@@ -134,14 +136,14 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
           </div>
         </azk-chart-wrapper>
 
-        <azk-chart-wrapper title="عملکرد در مقابل فروشندگان مشابه" subtitle="تطابق کلمات کلیدی دسته/زیردسته (نمونه)">
+        <azk-chart-wrapper title="مقایسه با فروشندگان مشابه" subtitle="تحلیل عملکرد نسبت به همتایان بازار">
           <div class="bench" *ngIf="benchmark$ | async as bench">
             <div class="bench__top">
               <div class="bench__headline">
-                <div class="bench__title">صدک همتایان</div>
+                <div class="bench__title">جایگاه شما در بین همتایان</div>
                 <div class="bench__value">{{ bench.percentile }}<span class="bench__pct">th</span></div>
                 <div class="muted">
-                  در مقایسه با همتایان <b>{{ bench.categoryKeyword }}</b> / <b>{{ bench.subcategoryKeyword }}</b>
+                  در دسته <b>{{ bench.categoryKeyword }}</b> / <b>{{ bench.subcategoryKeyword }}</b>
                 </div>
               </div>
               <div class="bench__score">
@@ -164,29 +166,29 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
                   <b>{{ bench.yourMerchant.sales | number }}</b>
                 </div>
                 <div class="mini__row">
-                  <span class="muted">میانه همتایان</span>
+                  <span class="muted">میانه بازار</span>
                   <b>{{ bench.peerMedian.sales | number }}</b>
                 </div>
               </div>
               <div class="mini">
-                <div class="mini__label">سفارش‌ها</div>
+                <div class="mini__label">تعداد سفارشات</div>
                 <div class="mini__row">
                   <span class="muted">شما</span>
                   <b>{{ bench.yourMerchant.orders | number }}</b>
                 </div>
                 <div class="mini__row">
-                  <span class="muted">میانه همتایان</span>
+                  <span class="muted">میانه بازار</span>
                   <b>{{ bench.peerMedian.orders | number }}</b>
                 </div>
               </div>
               <div class="mini">
-                <div class="mini__label">تبدیل</div>
+                <div class="mini__label">نرخ تبدیل</div>
                 <div class="mini__row">
                   <span class="muted">شما</span>
                   <b>{{ bench.yourMerchant.conversionRatePct | number : '1.1-1' }}%</b>
                 </div>
                 <div class="mini__row">
-                  <span class="muted">میانه همتایان</span>
+                  <span class="muted">میانه بازار</span>
                   <b>{{ bench.peerMedian.conversionRatePct | number : '1.1-1' }}%</b>
                 </div>
               </div>
@@ -197,7 +199,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
                   <b>{{ bench.yourMerchant.avgOrderValue | number }}</b>
                 </div>
                 <div class="mini__row">
-                  <span class="muted">میانه همتایان</span>
+                  <span class="muted">میانه بازار</span>
                   <b>{{ bench.peerMedian.avgOrderValue | number }}</b>
                 </div>
               </div>
@@ -212,7 +214,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         </azk-chart-wrapper>
       </div>
 
-      <azk-chart-wrapper title="پیش‌بینی فروش آینده" subtitle="۳ ماه آینده (نمونه)">
+      <azk-chart-wrapper title="پیش‌بینی فروش آینده" subtitle="برآورد سه ماه آتی">
         <div class="forecast" *ngIf="forecast$ | async as forecast">
           <div class="forecast__grid">
             @for (f of forecast; track f.month) {
@@ -220,7 +222,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
                 <div class="forecast__month">{{ f.month }}</div>
                 <div class="forecast__value">{{ f.predictedSales | number }}</div>
                 <div class="forecast__range">
-                  <span class="muted">محدوده:</span>
+                  <span class="muted">بازه پیش‌بینی:</span>
                   <span>{{ f.lowerBound | number }}–{{ f.upperBound | number }}</span>
                 </div>
                 <div class="forecast__conf">
