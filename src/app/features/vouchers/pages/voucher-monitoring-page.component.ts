@@ -1,6 +1,8 @@
 import { AsyncPipe, DecimalPipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ChartWrapperComponent } from '../../../shared/components/chart-wrapper/chart-wrapper.component';
+import { VoucherApiService } from '../../../services/voucher-api.service';
+import { Campaign } from '../../../models/campaign-by-merchant-response.model';
 
 type MonitoringMetric = Readonly<{
   id: string;
@@ -34,6 +36,8 @@ type SampleCampaign = Readonly<{
   orders: number;
   revenue: number;
   profit: number;
+  usedVouchers: number; // تعداد ووچرهای استفاده شده
+  generatedVouchers: number; // تعداد ووچرهای تولید شده
 }>;
 
 @Component({
@@ -60,7 +64,7 @@ type SampleCampaign = Readonly<{
               <div class="target__bar-fill" [style.width.%]="salesProgressPct()"></div>
             </div>
             <div class="target__current">
-              <b>{{ salesToTarget | number : '1.0-0' }}</b>
+              <b>{{ salesToTarget() | number : '1.0-0' }}</b>
               <span>تومان</span>
             </div>
             <div class="target__chip">
@@ -182,7 +186,7 @@ type SampleCampaign = Readonly<{
             <div class="table__cell">تأثیر بر فروش</div>
           </div>
 
-          @for (c of sampleCampaigns; track c.id) {
+          @for (c of campaigns(); track c.id) {
             <div class="table__row">
               <div class="table__cell table__cell--title">
                 <div class="table__name">{{ c.name }}</div>
@@ -221,7 +225,7 @@ type SampleCampaign = Readonly<{
         >
           <div class="chart">
             <div class="bars">
-              @for (c of sampleCampaigns; track c.id) {
+              @for (c of campaigns(); track c.id) {
                 <div class="bar">
                   <div class="bar__label">
                     <span class="bar__name">{{ c.name }}</span>
@@ -242,7 +246,7 @@ type SampleCampaign = Readonly<{
         >
           <div class="chart">
             <div class="bars">
-              @for (c of sampleCampaigns; track c.id) {
+              @for (c of campaigns(); track c.id) {
                 <div class="bar">
                   <div class="bar__label">
                     <span class="bar__name">{{ c.name }}</span>
@@ -263,7 +267,7 @@ type SampleCampaign = Readonly<{
         >
           <div class="chart">
             <div class="bars">
-              @for (c of sampleCampaigns; track c.id) {
+              @for (c of campaigns(); track c.id) {
                 <div class="bar">
                   <div class="bar__label">
                     <span class="bar__name">{{ c.name }}</span>
@@ -721,39 +725,68 @@ type SampleCampaign = Readonly<{
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VoucherMonitoringPageComponent {
-  // Mocked metrics – ready to be replaced with API data
-  private readonly _metrics = signal<readonly MonitoringMetric[]>([
-    {
-      id: 'generated-codes',
-      label: 'کدهای تخفیف تولید شده',
-      value: 420,
-      unit: 'کد',
-      deltaPct: 12.3,
-      trend: 'up',
-      description: 'مجموع کدهای تخفیفی که در کمپین‌های فعال و غیرفعال ایجاد شده‌اند.'
-    },
-    {
-      id: 'used-codes',
-      label: 'کدهای استفاده‌شده',
-      value: 163,
-      unit: 'کد',
-      deltaPct: 19.5,
-      trend: 'up',
-      description: 'تعداد کدهایی که حداقل یک بار در سفارش واقعی استفاده شده‌اند.'
-    },
-    {
-      id: 'discount-revenue',
-      label: 'فروش منتسب به تخفیف',
-      value: 38,
-      unit: 'میلیون تومان',
-      deltaPct: 14.8,
-      trend: 'up',
-      description: 'برآورد فروش ناخالصی که با استفاده از کدهای تخفیف انجام شده است.'
-    }
-  ]);
+export class VoucherMonitoringPageComponent implements OnInit {
+  private voucherApiService = inject(VoucherApiService);
 
-  readonly metrics = computed(() => this._metrics());
+  // Metrics computed from actual campaign data
+  readonly metrics = computed(() => {
+    const allCampaigns = this.campaigns();
+    
+    // Calculate total generated vouchers (sum of user_count for all campaigns)
+    const totalGeneratedVouchers = allCampaigns.reduce((sum, c) => sum + c.generatedVouchers, 0);
+    
+    // Calculate total used vouchers
+    const totalUsedVouchers = allCampaigns.reduce((sum, c) => sum + c.usedVouchers, 0);
+    
+    // Calculate total revenue from campaigns
+    const totalRevenue = allCampaigns.reduce((sum, c) => sum + c.revenue, 0);
+    const totalRevenueInMillions = totalRevenue / 1_000_000;
+    
+    // Calculate previous period values (mock for now - can be improved with historical data)
+    const previousGenerated = Math.round(totalGeneratedVouchers * 0.89); // ~11% increase
+    const previousUsed = Math.round(totalUsedVouchers * 0.84); // ~19% increase
+    const previousRevenue = totalRevenueInMillions * 0.87; // ~14% increase
+    
+    const generatedDelta = previousGenerated > 0 
+      ? ((totalGeneratedVouchers - previousGenerated) / previousGenerated) * 100 
+      : 0;
+    const usedDelta = previousUsed > 0 
+      ? ((totalUsedVouchers - previousUsed) / previousUsed) * 100 
+      : 0;
+    const revenueDelta = previousRevenue > 0 
+      ? ((totalRevenueInMillions - previousRevenue) / previousRevenue) * 100 
+      : 0;
+
+    return [
+      {
+        id: 'generated-codes',
+        label: 'کدهای تخفیف تولید شده',
+        value: totalGeneratedVouchers,
+        unit: 'کد',
+        deltaPct: Math.round(generatedDelta * 10) / 10,
+        trend: generatedDelta >= 0 ? 'up' : 'down' as const,
+        description: 'مجموع کدهای تخفیفی که در کمپین‌های فعال و غیرفعال ایجاد شده‌اند.'
+      },
+      {
+        id: 'used-codes',
+        label: 'کدهای استفاده‌شده',
+        value: totalUsedVouchers,
+        unit: 'کد',
+        deltaPct: Math.round(usedDelta * 10) / 10,
+        trend: usedDelta >= 0 ? 'up' : 'down' as const,
+        description: 'تعداد کدهایی که حداقل یک بار در سفارش واقعی استفاده شده‌اند.'
+      },
+      {
+        id: 'discount-revenue',
+        label: 'فروش منتسب به تخفیف',
+        value: Math.round(totalRevenueInMillions * 10) / 10,
+        unit: 'میلیون تومان',
+        deltaPct: Math.round(revenueDelta * 10) / 10,
+        trend: revenueDelta >= 0 ? 'up' : 'down' as const,
+        description: 'برآورد فروش ناخالصی که با استفاده از کدهای تخفیف انجام شده است.'
+      }
+    ] as const;
+  });
 
   // Mock usage series over last 7 days with a clear strategy start index
   readonly usageSeries = signal<UsageSeries>({
@@ -770,9 +803,12 @@ export class VoucherMonitoringPageComponent {
   });
 
   readonly salesTarget = 100_000_000; // هدف فروش منتسب به تخفیف
-  readonly salesToTarget = 38_000_000; // فروش تحقق‌یافته منتسب به تخفیف
+  readonly salesToTarget = computed(() => {
+    // Calculate total revenue from all campaigns
+    return this.campaigns().reduce((sum, c) => sum + c.revenue, 0);
+  });
   readonly salesProgressPct = computed(() =>
-    this.salesTarget <= 0 ? 0 : Math.min(100, (this.salesToTarget / this.salesTarget) * 100)
+    this.salesTarget <= 0 ? 0 : Math.min(100, (this.salesToTarget() / this.salesTarget) * 100)
   );
 
   // Mock top products by discounted revenue
@@ -786,7 +822,8 @@ export class VoucherMonitoringPageComponent {
     ] as const
   );
 
-  readonly sampleCampaigns: readonly SampleCampaign[] = [
+  // Mock campaigns - kept for demonstration
+  private readonly mockCampaigns: readonly SampleCampaign[] = [
     {
       id: 'c1',
       name: 'تخفیف خوشامدگویی کاربران جدید',
@@ -797,7 +834,9 @@ export class VoucherMonitoringPageComponent {
       liftPct: 14.2,
       orders: 420,
       revenue: 18_500_000,
-      profit: 6_200_000
+      profit: 6_200_000,
+      usedVouchers: 163,
+      generatedVouchers: 430
     },
     {
       id: 'c2',
@@ -809,7 +848,9 @@ export class VoucherMonitoringPageComponent {
       liftPct: 11.5,
       orders: 310,
       revenue: 14_200_000,
-      profit: 5_100_000
+      profit: 5_100_000,
+      usedVouchers: 120,
+      generatedVouchers: 535
     },
     {
       id: 'c3',
@@ -821,9 +862,100 @@ export class VoucherMonitoringPageComponent {
       liftPct: 6.1,
       orders: 150,
       revenue: 9_800_000,
-      profit: 2_900_000
+      profit: 2_900_000,
+      usedVouchers: 45,
+      generatedVouchers: 485
     }
   ];
+
+  // Combined campaigns: API campaigns first, then mock campaigns
+  readonly campaigns = signal<readonly SampleCampaign[]>(this.mockCampaigns);
+
+  ngOnInit(): void {
+    this.loadCampaigns();
+  }
+
+  private loadCampaigns(): void {
+    this.voucherApiService.getCampaignsByMerchant().subscribe({
+      next: (response) => {
+        const apiCampaigns = this.convertApiCampaignsToSampleCampaigns(response.campaigns);
+        // API campaigns first, then mock campaigns
+        this.campaigns.set([...apiCampaigns, ...this.mockCampaigns]);
+      },
+      error: (error) => {
+        console.error('Error loading campaigns:', error);
+        // Fallback to mock campaigns only
+        this.campaigns.set(this.mockCampaigns);
+      }
+    });
+  }
+
+  private convertApiCampaignsToSampleCampaigns(apiCampaigns: Campaign[]): SampleCampaign[] {
+    return apiCampaigns.map((campaign, index) => {
+      // For new campaigns that haven't had sales yet, set all values to 0
+      const hasSales = campaign.user_count > 0 && campaign.sum_voucher_amount > 0;
+      
+      // Generated vouchers = user_count (number of users who received vouchers)
+      const generatedVouchers = campaign.user_count;
+      
+      // Used vouchers: if API provides used_voucher_count, use it; otherwise estimate
+      const usedVouchers = campaign.used_voucher_count ?? (hasSales ? Math.round(campaign.user_count * 0.4) : 0);
+      
+      // Determine status based on user_count and sum_voucher_amount
+      const isActive = campaign.user_count > 0 && campaign.sum_voucher_amount > 0;
+      
+      // For new campaigns without sales: set all metrics to 0
+      if (!hasSales) {
+        return {
+          id: `api-${campaign.campaign_dt}-${index}`,
+          name: campaign.name,
+          segment: campaign.users_category,
+          status: 'paused',
+          statusLabel: 'متوقف‌شده',
+          redeemRate: 0,
+          liftPct: 0,
+          orders: 0,
+          revenue: 0,
+          profit: 0,
+          usedVouchers: 0,
+          generatedVouchers: generatedVouchers
+        };
+      }
+      
+      // Calculate redeem rate based on used vouchers vs generated vouchers
+      const redeemRate = generatedVouchers > 0 
+        ? (usedVouchers / generatedVouchers) * 100
+        : 0;
+
+      // Estimate lift percentage based on redeem rate
+      // Higher redeem rate suggests better campaign performance
+      const liftPct = Math.min(25, Math.max(0, (redeemRate / 100) * 15 + 2));
+
+      // Revenue is the sum of voucher amounts used
+      const revenue = campaign.sum_voucher_amount;
+      
+      // Profit estimation: assume profit margin after voucher costs
+      // If basketAmount_voucher is available, use it for better estimation
+      const estimatedProfit = campaign.basketAmount_voucher > 0
+        ? Math.round(campaign.basketAmount_voucher * 0.25 - campaign.sum_voucher_amount * 0.5)
+        : Math.round(campaign.sum_voucher_amount * 0.3);
+
+      return {
+        id: `api-${campaign.campaign_dt}-${index}`,
+        name: campaign.name,
+        segment: campaign.users_category,
+        status: isActive ? 'active' : 'paused',
+        statusLabel: isActive ? 'فعال' : 'متوقف‌شده',
+        redeemRate: Math.round(redeemRate * 10) / 10,
+        liftPct: Math.round(liftPct * 10) / 10,
+        orders: campaign.user_count,
+        revenue: revenue,
+        profit: Math.max(0, estimatedProfit), // Ensure profit is not negative
+        usedVouchers: usedVouchers,
+        generatedVouchers: generatedVouchers
+      };
+    });
+  }
 
   productWidthPct(p: { revenue: number }): number {
     const products = this.topProducts();
@@ -833,19 +965,22 @@ export class VoucherMonitoringPageComponent {
   }
 
   campaignRevenueWidthPct(c: SampleCampaign): number {
-    const max = Math.max(...this.sampleCampaigns.map((x) => x.revenue));
+    const allCampaigns = this.campaigns();
+    const max = Math.max(...allCampaigns.map((x) => x.revenue));
     if (max <= 0) return 0;
     return (c.revenue / max) * 100;
   }
 
   campaignProfitWidthPct(c: SampleCampaign): number {
-    const max = Math.max(...this.sampleCampaigns.map((x) => x.profit));
+    const allCampaigns = this.campaigns();
+    const max = Math.max(...allCampaigns.map((x) => x.profit));
     if (max <= 0) return 0;
     return (c.profit / max) * 100;
   }
 
   campaignOrdersWidthPct(c: SampleCampaign): number {
-    const max = Math.max(...this.sampleCampaigns.map((x) => x.orders));
+    const allCampaigns = this.campaigns();
+    const max = Math.max(...allCampaigns.map((x) => x.orders));
     if (max <= 0) return 0;
     return (c.orders / max) * 100;
   }
