@@ -1,0 +1,7 @@
+<div class="instagram-page">
+  @for (item of posts();track item.id){
+    <div>
+      <img [ngSrc]="item.media[0].url" [width]="200" [height]="400" alt="post">
+    </div>
+  }
+</div>

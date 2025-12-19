@@ -1,22 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 :root {
   /* Azki Primary Colors */
   --azki-primary: #364FD9;
   --azki-primary-hover: rgba(54, 79, 217, 0.04);
   --azki-primary-border: rgba(54, 79, 217, 0.5);
-  
+
   /* Background Colors */
   --bg: #FFFFFF;
   --surface: #FFFFFF;
   --surface-2: #F5F5F5;
   --border: rgba(4, 10, 31, 0.12);
   --border-light: rgba(4, 10, 31, 0.09);
-  
+
   /* Text Colors */
   --text: rgba(4, 10, 31, 0.87);
   --text-high: #040A1F;
   --muted: rgba(4, 10, 31, 0.6);
   --subtle: rgba(4, 10, 31, 0.38);
-  
+
   /* Status Colors */
   --brand: #364FD9;
   --brand-2: #364FD9;

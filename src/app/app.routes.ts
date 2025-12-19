@@ -27,6 +27,16 @@ export const routes: Routes = [
           import('./features/settings/settings.routes').then((m) => m.SETTINGS_ROUTES)
       },
       {
+        path: 'registration',
+        loadComponent: () =>
+          import('./features/registration/features/merchant-registration/merchant-registration').then((m) => m.MerchantRegistration)
+      },
+      {
+        path: 'instagram',
+        loadComponent: () =>
+          import('./features/instagram/instagram').then((m) => m.Instagram)
+      },
+      {
         path: '**',
         redirectTo: 'dashboard'
       }

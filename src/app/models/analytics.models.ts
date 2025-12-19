@@ -1,8 +1,8 @@
-export type IsoDateString = `${number}-${number}-${number}`;
+export type IsoDateString = `${number}-${number}-${number}` | string;
 
 export type ChartSeriesType = 'line' | 'bar';
 
-export type CurrencyCode = 'IRR' | 'USD' | 'EUR';
+export type CurrencyCode = 'ریال' | 'تومان';
 
 export type MerchantCategory = 'Grocery' | 'Pharmacy' | 'Restaurant' | 'Fashion';
 
@@ -26,15 +26,12 @@ export interface BranchSales {
   readonly orders: number;
 }
 
-export type ProductPerformanceTag = 'best' | 'worst';
-
 export interface ProductSales {
-  readonly productId: string;
-  readonly productName: string;
-  readonly unitsSold: number;
-  readonly revenue: number;
-  readonly marginPct: number; // 0..100
-  readonly tag: ProductPerformanceTag;
+  readonly product_id: string;
+  readonly product_name: string;
+  readonly rank: number;
+  readonly total_revenue: number;
+  readonly total_sold: number; // 0..100
 }
 
 export interface MerchantBenchmark {

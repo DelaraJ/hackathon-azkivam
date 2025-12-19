@@ -39,7 +39,7 @@ type SampleCampaign = Readonly<{
 @Component({
   selector: 'azk-voucher-monitoring-page',
   standalone: true,
-  imports: [AsyncPipe, DecimalPipe, NgIf, ChartWrapperComponent],
+  imports: [DecimalPipe, NgIf, ChartWrapperComponent],
   template: `
     <div class="page">
       <header class="page__head">

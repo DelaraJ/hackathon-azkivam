@@ -1,14 +1,15 @@
-import { AsyncPipe, CurrencyPipe, DatePipe, DecimalPipe, NgIf } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { AnalyticsService } from '../../../services/analytics.service';
-import { ChartWrapperComponent } from '../../../shared/components/chart-wrapper/chart-wrapper.component';
+import {AsyncPipe, CurrencyPipe, DatePipe, DecimalPipe, NgIf} from '@angular/common';
+import {ChangeDetectionStrategy, Component, computed, inject, OnInit, signal} from '@angular/core';
+import {RouterLink} from '@angular/router';
+import {AnalyticsService} from '../../../services/analytics.service';
+import {ChartWrapperComponent} from '../../../shared/components/chart-wrapper/chart-wrapper.component';
 import {
   BranchSales,
   ProductSales,
   SalesForecastPoint,
   SalesOverTimeSeries
 } from '../../../models/analytics.models';
+import {SalesApiService} from '../../../services/sales-api.service';
 
 type SvgPoint = Readonly<{ x: number; y: number }>;
 
@@ -21,7 +22,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
         <div>
           <div class="h1">داشبورد</div>
           <div class="muted">
-          داده‌های تحلیلی از سرویس‌های نمونه دریافت می‌شوند و آماده اتصال به APIهای واقعی هستند.
+            داده‌های تحلیلی از سرویس‌های نمونه دریافت می‌شوند و آماده اتصال به APIهای واقعی هستند.
           </div>
         </div>
       </div>
@@ -59,7 +60,7 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       <section class="kpis azk-card" *ngIf="kpis$ | async as kpis">
         <div class="kpi">
           <div class="kpi__label">فروش کل</div>
-          <div class="kpi__value">{{ kpis.totalSales | currency : kpis.currency : 'symbol-narrow' }}</div>
+          <div class="kpi__value">{{ totalRevenue() }} ریال</div>
           <div class="kpi__meta">
             <span class="chip chip--good">+{{ kpis.salesDeltaPctMoM | number : '1.1-1' }}%</span>
             <span class="kpi__hint">نسبت به ماه گذشته</span>
@@ -89,11 +90,12 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
               <span class="dot dot--brand"></span>
               <span class="muted">{{ series.label }}</span>
             </div>
-            <svg class="svg" viewBox="0 0 700 240" preserveAspectRatio="none" role="img" aria-label="نمودار خطی روند فروش">
-              <path class="gridline" d="M 0 200 L 700 200" />
-              <path class="gridline" d="M 0 140 L 700 140" />
-              <path class="gridline" d="M 0 80 L 700 80" />
-              <path class="gridline" d="M 0 20 L 700 20" />
+            <svg class="svg" viewBox="0 0 700 240" preserveAspectRatio="none" role="img"
+                 aria-label="نمودار خطی روند فروش">
+              <path class="gridline" d="M 0 200 L 700 200"/>
+              <path class="gridline" d="M 0 140 L 700 140"/>
+              <path class="gridline" d="M 0 80 L 700 80"/>
+              <path class="gridline" d="M 0 20 L 700 20"/>
               <path class="area" [attr.d]="lineAreaPath(series)"></path>
               <path class="line" [attr.d]="linePath(series)"></path>
             </svg>
@@ -126,27 +128,27 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
 
       <div class="grid grid--2">
         <azk-chart-wrapper title="عملکرد محصولات" subtitle="محصولات با بهترین و ضعیف‌ترین عملکرد">
-          <div class="split" *ngIf="products$ | async as products">
+          <div class="split">
             <div class="list">
               <div class="list__title">پرفروش‌ترین محصولات</div>
-              @for (p of bestProducts(products); track p.productId) {
+              @for (p of bestProducts(); track p.product_id) {
                 <div class="row">
-                  <div class="row__name">{{ p.productName }}</div>
+                  <div class="row__name">{{ p.product_name }}</div>
                   <div class="row__meta">
-                    <span class="chip chip--good">{{ p.unitsSold | number }} عدد</span>
-                    <span class="muted">{{ p.revenue | number }} فروش</span>
+                    <span class="chip chip--good">{{ p.total_sold | number }} عدد</span>
+                    <span class="muted">{{ p.total_revenue | number }} فروش</span>
                   </div>
                 </div>
               }
             </div>
             <div class="list">
               <div class="list__title">کم‌فروش‌ترین محصولات</div>
-              @for (p of worstProducts(products); track p.productId) {
+              @for (p of worstProducts(); track p.product_id) {
                 <div class="row">
-                  <div class="row__name">{{ p.productName }}</div>
+                  <div class="row__name">{{ p.product_name }}</div>
                   <div class="row__meta">
-                    <span class="chip chip--warn">{{ p.unitsSold | number }} عدد</span>
-                    <span class="muted">{{ p.revenue | number }} فروش</span>
+                    <span class="chip chip--warn">{{ p.total_sold | number }} عدد</span>
+                    <span class="muted">{{ p.total_revenue | number }} فروش</span>
                   </div>
                 </div>
               }
@@ -734,17 +736,24 @@ type SvgPoint = Readonly<{ x: number; y: number }>;
       }
     `
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true
 })
-export class DashboardPageComponent {
+export class DashboardPageComponent implements OnInit {
   private readonly analytics = inject(AnalyticsService);
+  private salesService = inject(SalesApiService);
+
+
 
   readonly kpis$ = this.analytics.getDashboardKpis();
   readonly salesOverTime$ = this.analytics.getSalesOverTime();
   readonly salesByBranch$ = this.analytics.getSalesByBranch();
-  readonly products$ = this.analytics.getProductPerformance();
   readonly benchmark$ = this.analytics.getPerformanceComparison();
   readonly forecast$ = this.analytics.getFutureSalesPrediction();
+
+  totalRevenue = signal<number>(0);
+  bestProducts = signal<ProductSales[]>([]);
+  worstProducts = signal<ProductSales[]>([]);
 
   readonly salesTarget = 100_000_000;
   readonly salesToTarget = 38_000_000;
@@ -752,12 +761,27 @@ export class DashboardPageComponent {
     this.salesTarget <= 0 ? 0 : Math.min(100, (this.salesToTarget / this.salesTarget) * 100)
   );
 
-  bestProducts(products: readonly ProductSales[]): readonly ProductSales[] {
-    return products.filter((p) => p.tag === 'best');
+  ngOnInit(): void {
+    this.getSalesDate();
   }
 
-  worstProducts(products: readonly ProductSales[]): readonly ProductSales[] {
-    return products.filter((p) => p.tag === 'worst');
+  getSalesDate(): void {
+    this.salesService.getTotalSales().subscribe({
+      next: res => {
+        this.totalRevenue.set(res.totalRevenue);
+      },
+      error: err => {
+        console.log(err)
+      }
+    })
+
+    this.salesService.getTopProducts().subscribe({
+      next: res => {
+        this.bestProducts.set(res.data.top_selling);
+        this.worstProducts.set(res.data.lowest_selling);
+      }
+    })
+
   }
 
   branchWidthPct(all: readonly BranchSales[], branch: BranchSales): number {
@@ -795,7 +819,7 @@ export class DashboardPageComponent {
     return pts.map((p, i) => {
       const x = pad + (innerW * i) / Math.max(1, pts.length - 1);
       const y = pad + innerH - ((p.value - min) / range) * innerH;
-      return { x, y };
+      return {x, y};
     });
   }
 

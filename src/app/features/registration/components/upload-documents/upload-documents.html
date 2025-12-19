@@ -1,0 +1,11 @@
+<div class="upload-document">
+  <span class="text">فایل مدارک خود را بارگزاری کنید.</span>
+  <div class="file-box">
+    <span class="title">کارت ملی صاحب کسب و کار</span>
+    <app-file-uploader (fileSelected)="onFileSelected($event,'nationalCard')"></app-file-uploader>
+  </div>
+  <div class="file-box">
+    <span class="title">مجوز کسب و کار</span>
+    <app-file-uploader (fileSelected)="onFileSelected($event,'licenses')"></app-file-uploader>
+  </div>
+</div>

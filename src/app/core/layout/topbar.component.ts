@@ -286,7 +286,8 @@ export class TopbarComponent {
     { label: 'داشبورد', route: '/dashboard' },
     // صفحه تنظیم و بررسی استراتژی‌های تخفیف (جریان ووچرها)
     { label: 'بررسی استراتژی تخفیف', route: '/vouchers' },
-    { label: 'پایش کمپین‌ها', route: '/vouchers/monitoring' }
+    { label: 'پایش کمپین‌ها', route: '/vouchers/monitoring' },
+    { label: 'اینستاگرام', route: '/instagram' }
     // داشبورد پایش عملکرد کمپین‌های تخفیف
   ];
 }

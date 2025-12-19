@@ -1,0 +1,44 @@
+<div
+  class="uploader"
+  [class.dragging]="isDragging"
+  [class.disabled]="disabled"
+  (dragover)="dragOver($event)"
+  (dragleave)="dragLeave($event)"
+  (drop)="drop($event)"
+>
+
+  <input
+    type="file"
+    hidden
+    #fileInput
+    [accept]="accept"
+    [disabled]="disabled"
+    (change)="onFileInput($event)"
+  />
+
+  <!-- Empty State -->
+  @if (!file){
+    <div class="placeholder" (click)="fileInput.click()">
+      <div class="icon">📁</div>
+      <p>کلیک کنید و یا فایل خود را در این فضا رها کنید.</p>
+      <span>محدودیت حجم {{ maxSizeMb }}MB</span>
+    </div>
+  }
+
+
+  <!-- Preview State -->
+  @if (file){
+    <div class="preview">
+      @if (previewUrl){
+        <img [src]="previewUrl" alt="test" />
+      }
+      <div class="file-info">
+        <strong>{{ file!.name??'' }}</strong>
+        <small>{{ file!.size / 1024 | number:'1.0-0' }} KB</small>
+      </div>
+      <button type="button" (click)="removeFile()">Remove</button>
+    </div>
+  }
+
+
+</div>
