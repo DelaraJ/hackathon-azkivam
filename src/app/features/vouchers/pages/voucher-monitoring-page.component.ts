@@ -33,8 +33,10 @@ type SampleCampaign = Readonly<{
   statusLabel: string;
   redeemRate: number;
   liftPct: number;
-  orders: number;
-  revenue: number;
+  orders: number; // تعداد فروش
+  userCount: number; // تعداد کاربر
+  revenue: number; // درآمد (basketAmount_voucher)
+  totalDiscountAmount: number; // کل مبلغ تخفیف (sum_voucher_amount)
   profit: number;
   usedVouchers: number; // تعداد ووچرهای استفاده شده
   generatedVouchers: number; // تعداد ووچرهای تولید شده
@@ -180,7 +182,9 @@ type SampleCampaign = Readonly<{
             <div class="table__cell table__cell--title">نام کمپین</div>
             <div class="table__cell">وضعیت</div>
             <div class="table__cell">تعداد فروش</div>
+            <div class="table__cell">تعداد کاربر</div>
             <div class="table__cell">درآمد</div>
+            <div class="table__cell">کل مبلغ تخفیف</div>
             <div class="table__cell">سود</div>
             <div class="table__cell">نرخ استفاده</div>
             <div class="table__cell">تأثیر بر فروش</div>
@@ -202,7 +206,13 @@ type SampleCampaign = Readonly<{
                 {{ c.orders | number : '1.0-0' }}
               </div>
               <div class="table__cell">
+                {{ c.userCount | number : '1.0-0' }}
+              </div>
+              <div class="table__cell">
                 {{ c.revenue | number : '1.0-0' }} تومان
+              </div>
+              <div class="table__cell">
+                {{ c.totalDiscountAmount | number : '1.0-0' }} تومان
               </div>
               <div class="table__cell">
                 {{ c.profit | number : '1.0-0' }} تومان
@@ -514,7 +524,7 @@ type SampleCampaign = Readonly<{
 
       .table__head {
         display: grid;
-        grid-template-columns: 2.4fr repeat(6, minmax(0, 1fr));
+        grid-template-columns: 2.4fr repeat(8, minmax(0, 1fr));
         padding: 8px 12px;
         background: var(--surface-2);
         font-size: 12px;
@@ -523,7 +533,7 @@ type SampleCampaign = Readonly<{
 
       .table__row {
         display: grid;
-        grid-template-columns: 2.4fr repeat(6, minmax(0, 1fr));
+        grid-template-columns: 2.4fr repeat(8, minmax(0, 1fr));
         padding: 10px 12px;
         border-top: 1px solid var(--border-light);
         font-size: 13px;
@@ -686,11 +696,17 @@ type SampleCampaign = Readonly<{
 
         .table__head,
         .table__row {
-          grid-template-columns: 2fr 1fr 1fr 1fr;
+          grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
         }
 
+        .table__head .table__cell:nth-child(6),
         .table__head .table__cell:nth-child(7),
-        .table__row .table__cell:nth-child(7) {
+        .table__head .table__cell:nth-child(8),
+        .table__head .table__cell:nth-child(9),
+        .table__row .table__cell:nth-child(6),
+        .table__row .table__cell:nth-child(7),
+        .table__row .table__cell:nth-child(8),
+        .table__row .table__cell:nth-child(9) {
           display: none;
         }
       }
@@ -714,10 +730,14 @@ type SampleCampaign = Readonly<{
         .table__head .table__cell:nth-child(5),
         .table__head .table__cell:nth-child(6),
         .table__head .table__cell:nth-child(7),
+        .table__head .table__cell:nth-child(8),
+        .table__head .table__cell:nth-child(9),
         .table__row .table__cell:nth-child(4),
         .table__row .table__cell:nth-child(5),
         .table__row .table__cell:nth-child(6),
-        .table__row .table__cell:nth-child(7) {
+        .table__row .table__cell:nth-child(7),
+        .table__row .table__cell:nth-child(8),
+        .table__row .table__cell:nth-child(9) {
           display: none;
         }
       }
@@ -833,7 +853,9 @@ export class VoucherMonitoringPageComponent implements OnInit {
       redeemRate: 37.8,
       liftPct: 14.2,
       orders: 420,
+      userCount: 430,
       revenue: 18_500_000,
+      totalDiscountAmount: 8_600_000,
       profit: 6_200_000,
       usedVouchers: 163,
       generatedVouchers: 430
@@ -847,7 +869,9 @@ export class VoucherMonitoringPageComponent implements OnInit {
       redeemRate: 22.4,
       liftPct: 11.5,
       orders: 310,
+      userCount: 535,
       revenue: 14_200_000,
+      totalDiscountAmount: 6_720_000,
       profit: 5_100_000,
       usedVouchers: 120,
       generatedVouchers: 535
@@ -861,7 +885,9 @@ export class VoucherMonitoringPageComponent implements OnInit {
       redeemRate: 9.3,
       liftPct: 6.1,
       orders: 150,
+      userCount: 485,
       revenue: 9_800_000,
+      totalDiscountAmount: 4_050_000,
       profit: 2_900_000,
       usedVouchers: 45,
       generatedVouchers: 485
@@ -892,53 +918,12 @@ export class VoucherMonitoringPageComponent implements OnInit {
 
   private convertApiCampaignsToSampleCampaigns(apiCampaigns: Campaign[]): SampleCampaign[] {
     return apiCampaigns.map((campaign, index) => {
-      // For new campaigns that haven't had sales yet, set all values to 0
-      const hasSales = campaign.user_count > 0 && campaign.sum_voucher_amount > 0;
-      
-      // Generated vouchers = user_count (number of users who received vouchers)
-      const generatedVouchers = campaign.user_count;
-      
-      // Used vouchers: if API provides used_voucher_count, use it; otherwise estimate
-      const usedVouchers = campaign.used_voucher_count ?? (hasSales ? Math.round(campaign.user_count * 0.4) : 0);
-      
-      // Determine status based on user_count and sum_voucher_amount
-      const isActive = campaign.user_count > 0 && campaign.sum_voucher_amount > 0;
-      
-      // For new campaigns without sales: set all metrics to 0
-      if (!hasSales) {
-        return {
-          id: `api-${campaign.campaign_dt}-${index}`,
-          name: campaign.name,
-          segment: campaign.users_category,
-          status: 'paused',
-          statusLabel: 'متوقف‌شده',
-          redeemRate: 0,
-          liftPct: 0,
-          orders: 0,
-          revenue: 0,
-          profit: 0,
-          usedVouchers: 0,
-          generatedVouchers: generatedVouchers
-        };
-      }
-      
-      // Calculate redeem rate based on used vouchers vs generated vouchers
-      const redeemRate = generatedVouchers > 0 
-        ? (usedVouchers / generatedVouchers) * 100
-        : 0;
-
-      // Estimate lift percentage based on redeem rate
-      // Higher redeem rate suggests better campaign performance
-      const liftPct = Math.min(25, Math.max(0, (redeemRate / 100) * 15 + 2));
-
-      // Revenue is the sum of voucher amounts used
-      const revenue = campaign.sum_voucher_amount;
-      
-      // Profit estimation: assume profit margin after voucher costs
-      // If basketAmount_voucher is available, use it for better estimation
-      const estimatedProfit = campaign.basketAmount_voucher > 0
-        ? Math.round(campaign.basketAmount_voucher * 0.25 - campaign.sum_voucher_amount * 0.5)
-        : Math.round(campaign.sum_voucher_amount * 0.3);
+      // Only fields delivered by API: user_count, sum_voucher_amount (کل مبلغ تخفیف)، voucher amounts.
+      // Everything else should be zeroed for now.
+      const userCount = campaign.user_count ?? 0;
+      const totalDiscountAmount = campaign.sum_voucher_amount ?? 0;
+      const generatedVouchers = userCount; // treated as number of distributed vouchers
+      const isActive = userCount > 0 && totalDiscountAmount > 0;
 
       return {
         id: `api-${campaign.campaign_dt}-${index}`,
@@ -946,12 +931,14 @@ export class VoucherMonitoringPageComponent implements OnInit {
         segment: campaign.users_category,
         status: isActive ? 'active' : 'paused',
         statusLabel: isActive ? 'فعال' : 'متوقف‌شده',
-        redeemRate: Math.round(redeemRate * 10) / 10,
-        liftPct: Math.round(liftPct * 10) / 10,
-        orders: campaign.user_count,
-        revenue: revenue,
-        profit: Math.max(0, estimatedProfit), // Ensure profit is not negative
-        usedVouchers: usedVouchers,
+        redeemRate: 0,
+        liftPct: 0,
+        orders: 0,
+        userCount: userCount,
+        revenue: 0,
+        totalDiscountAmount: totalDiscountAmount,
+        profit: 0,
+        usedVouchers: 0,
         generatedVouchers: generatedVouchers
       };
     });

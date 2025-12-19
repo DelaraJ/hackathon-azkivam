@@ -43,12 +43,10 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
             <input
               id="budget"
               class="input"
-              type="number"
-              min="0"
-              step="10000"
-              [value]="budgetInput()"
-              (input)="budgetInput.set(($any($event.target).value ?? '').toString())"
-              placeholder="مثلاً ۱٬۰۰۰٬۰۰۰ تومان"
+              type="text"
+              [value]="formatBudget(budgetInput())"
+              (input)="onBudgetInput($event)"
+              placeholder="مثلاً ۱۰٬۰۰۰٬۰۰۰ ریال"
             />
             <div class="hint">اگر وارد شود، تخفیف‌ها طوری پیشنهاد می‌شوند که از این مبلغ بیشتر نشوند</div>
           </div>
@@ -214,6 +212,25 @@ export class VoucherStrategyPageComponent {
     this.flow.snapshot.strategy.maxDiscountBudget?.toString() ?? ''
   );
 
+  // Format number with comma separators
+  formatBudget(value: string): string {
+    if (!value || value.trim() === '') return '';
+    // Remove any existing commas and non-numeric characters except digits
+    const numericValue = value.replace(/[^\d]/g, '');
+    if (numericValue === '') return '';
+    // Add comma separators (thousand separators)
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  // Handle budget input and parse the value
+  onBudgetInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    // Remove commas and keep only digits
+    const numericValue = value.replace(/[^\d]/g, '');
+    this.budgetInput.set(numericValue);
+  }
+
   readonly steps = computed<readonly StepperStep[]>(() => {
     const hasGoal = this.selectedGoal() !== null;
     const hasRec = this.flow.snapshot.recommendation !== null;
@@ -236,10 +253,10 @@ export class VoucherStrategyPageComponent {
   });
 
   protected readonly goals: readonly { id: VoucherGoal; label: string; desc: string }[] = [
-    { id: 'USER_ACQUISITION', label: 'جذب مشتری جدید', desc:  'برای آوردن مشتری‌های جدید و سفارش اول' },
+    { id: 'USER_ACQUISITION', label: 'جذب مشتری جدید', desc: 'برای آوردن مشتری‌های جدید و سفارش اول' },
     { id: 'SALES_GROWTH', label: 'افزایش فروش', desc: 'برای بالا بردن تعداد سفارش‌ها در شعب' },
     { id: 'PROFIT_INCREASE', label: 'افزایش سود', desc: 'تمرکز روی محصولات و مشتریان سودآور' },
-    { id: 'TARGET_USERS', label: 'هدف‌گیری کاربران خاص', desc: 'برگرداندن یا درگیر کردن کاربران منتخب' }
+    { id: 'TARGET_USERS', label: 'جذب کاربران از دست رفته', desc: 'برگرداندن یا فعال‌سازی دوباره کاربران ریزشی' }
   ];
 
   private readonly goalToApiStrategyMap: Record<VoucherGoal, string> = {

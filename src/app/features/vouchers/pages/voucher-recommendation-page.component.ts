@@ -3,8 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
-import { StepperStep } from '../../../models/voucher-flow.models';
-import { VoucherRecommendationResponse } from '../../../models/voucher-recommendation-response.model';
+import { StepperStep, VoucherGoal } from '../../../models/voucher-flow.models';
+import { VoucherApiService } from '../../../services/voucher-api.service';
 
 @Component({
   selector: 'azk-voucher-recommendation-page',
@@ -37,12 +37,12 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
         <div class="info-grid">
           <div class="info-item">
             <div class="info-item__label">میزان تخفیف</div>
-            <div class="info-item__value">{{ r.amount_voucher | number }} تومان</div>
+            <div class="info-item__value">{{ divideByTen(r.amount_voucher) | number }} تومان</div>
             <div class="info-item__hint">مبلغ تخفیف برای هر کاربر</div>
           </div>
           <div class="info-item">
             <div class="info-item__label">حداقل مبلغ سبد خرید</div>
-            <div class="info-item__value">{{ r.basketAmount_voucher | number }} تومان</div>
+            <div class="info-item__value">{{ divideByTen(r.basketAmount_voucher) | number }} تومان</div>
             <div class="info-item__hint">حداقل مبلغ برای استفاده از تخفیف</div>
           </div>
           <div class="info-item">
@@ -52,7 +52,7 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
           </div>
           <div class="info-item">
             <div class="info-item__label">کل مبلغ تخفیف</div>
-            <div class="info-item__value highlight">{{ r.sum_voucher_amount | number }} تومان</div>
+            <div class="info-item__value highlight">{{ divideByTen(r.sum_voucher_amount) | number }} تومان</div>
             <div class="info-item__hint">مجموع کل تخفیف‌های پیشنهادی</div>
           </div>
         </div>
@@ -87,7 +87,7 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
               </svg>
               نمونه پیامک
             </div>
-            <div class="content-box__text sms-text">{{ r.sample_sms }}</div>
+            <div class="content-box__text sms-text">{{ processSmsText(r.sample_sms) }}</div>
           </div>
         </div>
 
@@ -319,6 +319,14 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
 export class VoucherRecommendationPageComponent {
   private readonly router = inject(Router);
   private readonly flow = inject(VoucherFlowService);
+  private readonly api = inject(VoucherApiService);
+
+  private readonly goalToApiStrategyMap: Record<VoucherGoal, string> = {
+    USER_ACQUISITION: 'user_attraction',
+    SALES_GROWTH: 'increase_sells',
+    PROFIT_INCREASE: 'increase_revenue',
+    TARGET_USERS: 'churn_user_attraction'
+  };
 
   readonly enabled = computed(() => this.flow.snapshot.strategy.goal !== null);
 
@@ -339,6 +347,21 @@ export class VoucherRecommendationPageComponent {
 
   readonly apiResponse = toSignal(this.flow.recommendationResponse$, { initialValue: null });
 
+  // Helper method to divide numbers by 10 (remove last zero)
+  divideByTen(value: number): number {
+    return value / 10;
+  }
+
+  // Helper method to process SMS text and divide numbers by 10
+  processSmsText(text: string): string {
+    if (!text) return text;
+    // Match numbers in the text and divide by 10 (remove last zero)
+    return text.replace(/\d+/g, (match) => {
+      const num = parseInt(match, 10);
+      return Math.floor(num / 10).toString();
+    });
+  }
+
   goStrategy(): void {
     void this.router.navigateByUrl('/vouchers/strategy');
   }
@@ -354,8 +377,28 @@ export class VoucherRecommendationPageComponent {
   }
 
   confirm(): void {
-    this.flow.confirm();
-    void this.router.navigateByUrl('/vouchers/monitoring');
+    const goal = this.flow.snapshot.strategy.goal;
+    const apiStrategy = goal ? this.goalToApiStrategyMap[goal] : null;
+    const maxBudget = this.flow.snapshot.strategy.maxDiscountBudget;
+    const payableAmount = typeof maxBudget === 'number' && Number.isFinite(maxBudget) ? maxBudget : 0;
+    const hasRecommendation = !!this.flow.snapshot.recommendationResponse;
+
+    if (!goal || !apiStrategy || !hasRecommendation) {
+      console.error('Cannot confirm: missing goal, strategy key, or recommendation response.');
+      return;
+    }
+
+    this.api.runCampaign(apiStrategy, payableAmount).subscribe({
+      next: (response) => {
+        // ذخیره آخرین پاسخ تاییدشده
+        this.flow.setRecommendationResponse(response);
+        this.flow.confirm();
+        void this.router.navigateByUrl('/vouchers/monitoring');
+      },
+      error: (error) => {
+        console.error('خطا در اجرای کمپین:', error);
+      }
+    });
   }
 }
 

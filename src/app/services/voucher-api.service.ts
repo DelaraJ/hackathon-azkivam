@@ -22,6 +22,15 @@ export class VoucherApiService {
     return this.http.get<VoucherRecommendationResponse>(this.base + '/recommendations', {params});
   }
 
+  runCampaign(strategy: string, payable_amount: number): Observable<VoucherRecommendationResponse> {
+    const params = new HttpParams()
+      .set('merchantID', this.merchantID)
+      .set('strategy', strategy)
+      .set('payable_amount', payable_amount.toString());
+
+    return this.http.post<VoucherRecommendationResponse>(this.base + '/campaigns/run', '', { params });
+  }
+
   getCampaignsByMerchant(): Observable<CampaignByMerchantResponse> {
     const params = new HttpParams()
       .set('merchantID', this.merchantID);
