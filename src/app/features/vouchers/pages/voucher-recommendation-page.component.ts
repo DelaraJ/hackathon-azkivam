@@ -1,9 +1,11 @@
 import { DecimalPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { StepperComponent } from '../../../shared/components/stepper/stepper.component';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
-import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow.models';
+import { StepperStep } from '../../../models/voucher-flow.models';
+import { VoucherRecommendationResponse } from '../../../models/voucher-recommendation-response.model';
 
 @Component({
   selector: 'azk-voucher-recommendation-page',
@@ -20,48 +22,75 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
 
       <azk-stepper [steps]="steps()"></azk-stepper>
 
-      <section class="azk-card card" *ngIf="enabled(); else blocked">
-        <div class="card__title">پیشنهاد پیشنهادی سیستم</div>
-        <div class="card__subtitle">بر اساس اطلاعات فروش و رفتار کاربران شما</div>
-
-        <div class="grid" *ngIf="rec() as r">
-          <div class="tile">
-            <div class="tile__label">میزان تخفیف</div>
-            <div class="tile__value">{{ discountText(r) }}</div>
-            <div class="tile__hint">
-              این مقدار برای افزایش فروش و کنترل هزینه انتخاب شده است            </div>
-            </div>
-          <div class="tile">
-            <div class="tile__label">به چه کاربرانی داده شود</div>
-            <div class="tile__value">{{ r.userSegments.join(', ') }}</div>
-          </div>
-          <div class="tile">
-            <div class="tile__label">کجا اعمال شود</div>
-            <div class="tile__value">{{ scopeText(r) }}</div>
-          </div>
-          <div class="tile">
-            <div class="tile__label">محدوده قیمت محصول</div>
-            <div class="tile__value">{{ r.productPriceRange.min | number }} تا {{ r.productPriceRange.max | number }}</div>
+      <section class="azk-card card" *ngIf="apiResponse() as r; else noData">
+        <div class="card__header">
+          <div class="card__title">{{ r.name }}</div>
+          <div class="card__subtitle">
+            <span class="info-badge">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              تاریخ کمپین: {{ r.campaign_dt }}
+            </span>
           </div>
         </div>
 
-        <div class="two">
-          <div class="box">
-            <div class="box__title">چرا این تخفیف پیشنهاد شده؟</div>
-            <ul class="list" *ngIf="rec() as r">
-              @for (n of r.rationale; track n) {
-                <li>{{ n }}</li>
-              }
-            </ul>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="info-item__label">میزان تخفیف</div>
+            <div class="info-item__value">{{ r.amount_voucher | number }} تومان</div>
+            <div class="info-item__hint">مبلغ تخفیف برای هر کاربر</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item__label">حداقل مبلغ سبد خرید</div>
+            <div class="info-item__value">{{ r.basketAmount_voucher | number }} تومان</div>
+            <div class="info-item__hint">حداقل مبلغ برای استفاده از تخفیف</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item__label">تعداد کاربران</div>
+            <div class="info-item__value highlight">{{ r.user_count | number }} نفر</div>
+            <div class="info-item__hint">تعداد کاربران هدف</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item__label">کل مبلغ تخفیف</div>
+            <div class="info-item__value highlight">{{ r.sum_voucher_amount | number }} تومان</div>
+            <div class="info-item__hint">مجموع کل تخفیف‌های پیشنهادی</div>
+          </div>
+        </div>
+
+        <div class="info-grid secondary">
+          <div class="info-item">
+            <div class="info-item__label">دسته کاربران</div>
+            <div class="info-item__value">{{ r.users_category }}</div>
+          </div>
+          <div class="info-item">
+            <div class="info-item__label">طبقه قیمتی کاربران</div>
+            <div class="info-item__value">{{ r.user_price_class }}</div>
+          </div>
+        </div>
+
+        <div class="content-boxes">
+          <div class="content-box">
+            <div class="content-box__title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+              دلیل پیشنهاد
+            </div>
+            <div class="content-box__text">{{ r.why }}</div>
           </div>
 
-          <div class="box">
-            <div class="box__title">محدودیت‌ها</div>
-            <ul class="list" *ngIf="rec() as r">
-              @for (g of r.guardrails; track g) {
-                <li>{{ g }}</li>
-              }
-            </ul>
+          <div class="content-box">
+            <div class="content-box__title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              نمونه پیامک
+            </div>
+            <div class="content-box__text sms-text">{{ r.sample_sms }}</div>
           </div>
         </div>
 
@@ -71,10 +100,10 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
         </div>
       </section>
 
-      <ng-template #blocked>
+      <ng-template #noData>
         <section class="azk-card card">
           <div class="card__title">پیشنهادی وجود ندارد</div>
-          <div class="card__subtitle">ابتدا هدف تخفیف را مشخص کنید تا پیشنهاد آماده شود</div>
+          <div class="card__subtitle">ابتدا هدف تخفیف را مشخص کنید و پیشنهاد را دریافت کنید</div>
           <div class="actions">
             <button class="btn" type="button" (click)="goStrategy()">رفتن به مرحله قبل</button>
           </div>
@@ -110,69 +139,129 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
         text-align: right;
       }
       .card {
-        padding: 16px;
+        padding: 20px;
         direction: rtl;
         text-align: right;
       }
+      .card__header {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
       .card__title {
-        font-weight: 850;
-        font-size: 16px;
+        font-weight: 900;
+        font-size: 18px;
+        line-height: 1.4;
         text-align: right;
+        margin-bottom: 8px;
       }
       .card__subtitle {
-        margin-top: 6px;
         color: var(--muted);
         font-size: 13px;
         text-align: right;
       }
-      .grid {
-        margin-top: 14px;
+      .info-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: rgba(110, 231, 255, 0.1);
+        border: 1px solid rgba(110, 231, 255, 0.2);
+        border-radius: 8px;
+        color: rgba(110, 231, 255, 0.9);
+        font-size: 12px;
+      }
+      .info-badge svg {
+        width: 14px;
+        height: 14px;
+      }
+      .info-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 10px;
+        gap: 12px;
+        margin-bottom: 16px;
       }
-      .tile {
-        padding: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.02);
-        direction: rtl;
-        text-align: right;
+      .info-grid.secondary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-bottom: 20px;
       }
-      .tile__label {
+      .info-item {
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+        transition: all 0.2s ease;
+      }
+      .info-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(110, 231, 255, 0.2);
+      }
+      .info-item__label {
         color: var(--muted);
         font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 8px;
         text-align: right;
       }
-      .tile__value {
-        margin-top: 8px;
+      .info-item__value {
         font-weight: 850;
+        font-size: 18px;
+        color: var(--text);
         text-align: right;
+        margin-bottom: 6px;
       }
-      .tile__hint {
-        margin-top: 6px;
+      .info-item__value.highlight {
+        color: rgba(110, 231, 255, 1);
+        font-size: 20px;
+      }
+      .info-item__hint {
         color: var(--subtle);
-        font-size: 12px;
+        font-size: 11px;
         text-align: right;
+        line-height: 1.4;
       }
-      .two {
-        margin-top: 14px;
+      .content-boxes {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 16px;
+        margin-bottom: 20px;
       }
-      .box {
-        padding: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(255, 255, 255, 0.02);
-        direction: rtl;
-        text-align: right;
+      .content-box {
+        padding: 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
       }
-      .box__title {
+      .content-box__title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-weight: 800;
-        margin-bottom: 10px;
+        font-size: 14px;
+        margin-bottom: 12px;
+        color: var(--text);
         text-align: right;
+      }
+      .content-box__title svg {
+        width: 18px;
+        height: 18px;
+        color: rgba(110, 231, 255, 0.8);
+      }
+      .content-box__text {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.7;
+        text-align: right;
+      }
+      .content-box__text.sms-text {
+        font-family: 'Vazirmatn', 'Courier New', monospace;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 12px;
+        direction: rtl;
+        word-break: break-word;
       }
       .list {
         margin: 0;
@@ -208,15 +297,21 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
         background: rgba(255, 255, 255, 0.03);
       }
       @media (max-width: 1100px) {
-        .grid {
+        .info-grid {
           grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .info-grid.secondary {
+          grid-template-columns: 1fr;
         }
       }
       @media (max-width: 820px) {
-        .two {
+        .content-boxes {
           grid-template-columns: 1fr;
         }
-        .grid {
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+        .info-grid.secondary {
           grid-template-columns: 1fr;
         }
       }
@@ -232,39 +327,21 @@ export class VoucherRecommendationPageComponent {
 
   readonly steps = computed<readonly StepperStep[]>(() => {
     const hasGoal = this.flow.snapshot.strategy.goal !== null;
-    const hasRec = this.flow.snapshot.recommendation !== null;
+    const hasResponse = this.flow.snapshot.recommendationResponse !== null;
     return [
       { id: 'STRATEGY', label: 'استراتژی', route: '/vouchers/strategy', complete: hasGoal, enabled: true },
       {
         id: 'RECOMMENDATION',
         label: 'پیشنهاد',
         route: '/vouchers/recommendation',
-        complete: hasRec,
+        complete: hasResponse,
         enabled: hasGoal
       },
-      { id: 'REVIEW', label: 'بررسی و تأیید', route: '/vouchers/review', complete: this.flow.snapshot.confirmed, enabled: hasRec }
+      { id: 'REVIEW', label: 'بررسی و تأیید', route: '/vouchers/review', complete: this.flow.snapshot.confirmed, enabled: hasResponse }
     ];
   });
 
-  readonly rec = computed<VoucherRecommendation | null>(() => {
-    if (!this.enabled()) return null;
-    return this.flow.snapshot.recommendation ?? this.flow.generateRecommendation();
-  });
-
-  discountText(r: VoucherRecommendation): string {
-    return r.discountType === 'PERCENT' ? `${r.discountValue}% تخفیف` : `${r.discountValue.toLocaleString()} تومان تخفیف`;
-  }
-
-  scopeText(r: VoucherRecommendation): string {
-    switch (r.scope.type) {
-      case 'ALL_BRANCHES':
-        return 'همه شعب';
-      case 'BRANCHES':
-        return `شعب انتخاب‌شده  (${(r.scope.branchIds ?? []).length})`;
-      case 'CATEGORY':
-        return `دسته: ${r.scope.category ?? '—'}`;
-    }
-  }
+  readonly apiResponse = toSignal(this.flow.recommendationResponse$, { initialValue: null });
 
   goStrategy(): void {
     void this.router.navigateByUrl('/vouchers/strategy');
@@ -276,7 +353,8 @@ export class VoucherRecommendationPageComponent {
 
   regenerate(): void {
     if (!this.enabled()) return;
-    this.flow.generateRecommendation();
+    // می‌توانید در صورت نیاز دوباره API را فراخوانی کنید
+    void this.router.navigateByUrl('/vouchers/strategy');
   }
 
   continue(): void {

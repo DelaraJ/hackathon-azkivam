@@ -1,3 +1,5 @@
+import { VoucherRecommendationResponse } from './voucher-recommendation-response.model';
+
 export type VoucherGoal = 'USER_ACQUISITION' | 'PROFIT_INCREASE' | 'TARGET_USERS' | 'SALES_GROWTH';
 
 export type DiscountType = 'PERCENT' | 'AMOUNT';
@@ -36,6 +38,7 @@ export interface VoucherRecommendation {
 export interface VoucherFlowState {
   readonly strategy: VoucherStrategyInput;
   readonly recommendation: VoucherRecommendation | null;
+  readonly recommendationResponse: VoucherRecommendationResponse | null;
   readonly confirmed: boolean;
 }
 

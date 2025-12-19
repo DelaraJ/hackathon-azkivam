@@ -6,10 +6,12 @@ import {
   VoucherRecommendation,
   VoucherStrategyInput
 } from '../models/voucher-flow.models';
+import { VoucherRecommendationResponse } from '../models/voucher-recommendation-response.model';
 
 const INITIAL_STATE: VoucherFlowState = {
   strategy: { goal: null },
   recommendation: null,
+  recommendationResponse: null,
   confirmed: false
 };
 
@@ -20,6 +22,7 @@ export class VoucherFlowService {
 
   readonly strategy$ = this.state$.pipe(map((s) => s.strategy));
   readonly recommendation$ = this.state$.pipe(map((s) => s.recommendation));
+  readonly recommendationResponse$ = this.state$.pipe(map((s) => s.recommendationResponse));
   readonly confirmed$ = this.state$.pipe(map((s) => s.confirmed));
 
   get snapshot(): VoucherFlowState {
@@ -35,7 +38,16 @@ export class VoucherFlowService {
       ...this.snapshot,
       strategy: input,
       recommendation: null,
+      recommendationResponse: null,
       confirmed: false
+    };
+    this.stateSubject.next(next);
+  }
+
+  setRecommendationResponse(response: VoucherRecommendationResponse): void {
+    const next: VoucherFlowState = {
+      ...this.snapshot,
+      recommendationResponse: response
     };
     this.stateSubject.next(next);
   }

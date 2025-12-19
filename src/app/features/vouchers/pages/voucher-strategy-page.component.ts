@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { Router } from '@angular/router';
 import { StepperComponent } from '../../../shared/components/stepper/stepper.component';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
+import { VoucherApiService } from '../../../services/voucher-api.service';
 import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/voucher-flow.models';
 
 @Component({
@@ -209,6 +210,7 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
 export class VoucherStrategyPageComponent {
   private readonly router = inject(Router);
   private readonly flow = inject(VoucherFlowService);
+  private readonly api = inject(VoucherApiService);
 
   readonly selectedGoal = signal<VoucherGoal | null>(this.flow.snapshot.strategy.goal);
   readonly budgetInput = signal<string>(
@@ -250,6 +252,13 @@ export class VoucherStrategyPageComponent {
     { id: 'TARGET_USERS', label: 'هدف‌گیری کاربران خاص', desc: 'برگرداندن یا درگیر کردن کاربران منتخب' }
   ];
 
+  private readonly goalToApiStrategyMap: Record<VoucherGoal, string> = {
+    'USER_ACQUISITION': 'user_attraction',
+    'SALES_GROWTH': 'increase_sells',
+    'PROFIT_INCREASE': 'increase_revenue',
+    'TARGET_USERS': 'churn_user_attraction'
+  };
+
   reset(): void {
     this.flow.reset();
     this.selectedGoal.set(null);
@@ -266,6 +275,21 @@ export class VoucherStrategyPageComponent {
       maxDiscountBudget: Number.isFinite(maxDiscountBudget ?? NaN) ? maxDiscountBudget : undefined
     };
     this.flow.setStrategy(strategy);
+    
+    // فراخوانی API و ذخیره پاسخ به صورت global
+    const payableAmount = maxDiscountBudget && Number.isFinite(maxDiscountBudget) ? maxDiscountBudget : 0;
+    const apiStrategy = this.goalToApiStrategyMap[goal];
+    this.api.getVoucherRecommendations(apiStrategy, payableAmount).subscribe({
+      next: (response) => {
+        this.flow.setRecommendationResponse(response);
+        console.log('پاسخ API ذخیره شد:', response);
+        console.log('اطلاعات ذخیره شده در state global:', this.flow.snapshot.recommendationResponse);
+      },
+      error: (error) => {
+        console.error('خطا در دریافت پیشنهادات:', error);
+      }
+    });
+    
     void this.router.navigateByUrl('/vouchers/recommendation');
   }
 }
