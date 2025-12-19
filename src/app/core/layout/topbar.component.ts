@@ -52,7 +52,7 @@ type NavItem = Readonly<{
               class="header-link"
               [routerLink]="item.route"
               routerLinkActive="header-link--active"
-              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+              [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' || item.route === '/vouchers' }"
             >
               <span class="header-link__label">{{ item.label }}</span>
             </a>
