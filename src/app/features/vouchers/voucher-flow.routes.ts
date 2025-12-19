@@ -19,11 +19,6 @@ export const VOUCHER_FLOW_ROUTES: Routes = [
       )
   },
   {
-    path: 'review',
-    loadComponent: () =>
-      import('./pages/voucher-review-page.component').then((m) => m.VoucherReviewPageComponent)
-  },
-  {
     path: 'monitoring',
     loadComponent: () =>
       import('./pages/voucher-monitoring-page.component').then((m) => m.VoucherMonitoringPageComponent)

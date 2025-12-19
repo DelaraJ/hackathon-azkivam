@@ -2,14 +2,13 @@ import { DecimalPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { StepperComponent } from '../../../shared/components/stepper/stepper.component';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
 import { StepperStep } from '../../../models/voucher-flow.models';
 import { VoucherRecommendationResponse } from '../../../models/voucher-recommendation-response.model';
 
 @Component({
   selector: 'azk-voucher-recommendation-page',
-  imports: [DecimalPipe, NgIf, StepperComponent],
+  imports: [DecimalPipe, NgIf],
   template: `
     <div class="page">
       <div class="head">
@@ -19,8 +18,6 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
         </div>
         <button class="btn btn--ghost" type="button" (click)="back()">بازگشت</button>
       </div>
-
-      <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card" *ngIf="apiResponse() as r; else noData">
         <div class="card__header">
@@ -96,7 +93,7 @@ import { VoucherRecommendationResponse } from '../../../models/voucher-recommend
 
         <div class="actions">
           <button class="btn btn--ghost" type="button" (click)="regenerate()">تغییر پیشنهاد</button>
-          <button class="btn" type="button" (click)="continue()">ادامه و تأیید</button>
+          <button class="btn" type="button" (click)="confirm()">تایید نهایی</button>
         </div>
       </section>
 
@@ -336,8 +333,7 @@ export class VoucherRecommendationPageComponent {
         route: '/vouchers/recommendation',
         complete: hasResponse,
         enabled: hasGoal
-      },
-      { id: 'REVIEW', label: 'بررسی و تأیید', route: '/vouchers/review', complete: this.flow.snapshot.confirmed, enabled: hasResponse }
+      }
     ];
   });
 
@@ -357,8 +353,9 @@ export class VoucherRecommendationPageComponent {
     void this.router.navigateByUrl('/vouchers/strategy');
   }
 
-  continue(): void {
-    void this.router.navigateByUrl('/vouchers/review');
+  confirm(): void {
+    this.flow.confirm();
+    void this.router.navigateByUrl('/vouchers/monitoring');
   }
 }
 

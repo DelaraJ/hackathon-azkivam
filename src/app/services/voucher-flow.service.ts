@@ -70,8 +70,8 @@ export class VoucherFlowService {
   }
 
   confirm(): void {
-    if (!this.snapshot.recommendation) {
-      throw new Error('Cannot confirm without a recommendation.');
+    if (!this.snapshot.recommendationResponse) {
+      throw new Error('Cannot confirm without a recommendation response.');
     }
     this.stateSubject.next({ ...this.snapshot, confirmed: true });
   }

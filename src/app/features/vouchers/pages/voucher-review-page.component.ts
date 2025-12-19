@@ -1,13 +1,12 @@
 import { DecimalPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { StepperComponent } from '../../../shared/components/stepper/stepper.component';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
 import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow.models';
 
 @Component({
   selector: 'azk-voucher-review-page',
-  imports: [DecimalPipe, NgIf, StepperComponent],
+  imports: [DecimalPipe, NgIf],
   template: `
     <div class="page">
       <div class="head">
@@ -17,8 +16,6 @@ import { StepperStep, VoucherRecommendation } from '../../../models/voucher-flow
         </div>
         <button class="btn btn--ghost" type="button" (click)="back()">بازگشت</button>
       </div>
-
-      <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card" *ngIf="enabled(); else blocked">
         <div class="card__title">خلاصه تخفیف</div>

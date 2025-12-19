@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { StepperComponent } from '../../../shared/components/stepper/stepper.component';
 import { VoucherFlowService } from '../../../services/voucher-flow.service';
 import { VoucherApiService } from '../../../services/voucher-api.service';
 import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/voucher-flow.models';
 
 @Component({
   selector: 'azk-voucher-strategy-page',
-  imports: [StepperComponent],
+  imports: [],
   template: `
     <div class="page">
       <div class="head">
@@ -17,8 +16,6 @@ import { StepperStep, VoucherGoal, VoucherStrategyInput } from '../../../models/
         </div>
         <button class="btn btn--ghost" type="button" (click)="reset()">بازنشانی</button>
       </div>
-
-      <azk-stepper [steps]="steps()"></azk-stepper>
 
       <section class="azk-card card">
         <div class="card__title">مرحله ۱ — هدف تخفیف</div>
@@ -234,13 +231,6 @@ export class VoucherStrategyPageComponent {
         route: '/vouchers/recommendation',
         complete: hasRec,
         enabled: hasGoal
-      },
-      {
-        id: 'REVIEW',
-        label: 'تأیید نهایی',
-        route: '/vouchers/review',
-        complete: this.flow.snapshot.confirmed,
-        enabled: hasRec
       }
     ];
   });
