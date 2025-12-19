@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
 import {VoucherRecommendationResponse} from '../models/voucher-recommendation-response.model';
+import {CampaignByMerchantResponse} from '../models/campaign-by-merchant-response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -19,5 +20,12 @@ export class VoucherApiService {
       .set('payable_amount', payable_amount.toString());
 
     return this.http.get<VoucherRecommendationResponse>(this.base + '/recommendations', {params});
+  }
+
+  getCampaignsByMerchant(): Observable<CampaignByMerchantResponse> {
+    const params = new HttpParams()
+      .set('merchantID', this.merchantID);
+
+    return this.http.get<CampaignByMerchantResponse>(this.base + '/campaigns/by-merchant', {params});
   }
 }
